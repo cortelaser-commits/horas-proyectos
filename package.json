@@ -1,0 +1,12 @@
+{
+  "name": "horas-proyectos",
+  "version": "1.0.0",
+  "description": "App de horas por proyecto",
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node servidor.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.0.0"
+  }
+}
