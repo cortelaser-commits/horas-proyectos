@@ -74,6 +74,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 .tst.on{display:flex}
 .emp{text-align:center;padding:2rem;color:var(--tx2);font-size:14px}
 @media(max-width:420px){.fg{grid-template-columns:1fr}.ag{grid-template-columns:1fr}}
+
+/* Mobile optimizations */
+@media(max-width:600px){
+  .hdr{padding:10px 12px}
+  .tab{padding:9px 4px;font-size:11px;min-width:60px}
+  .crd{padding:12px 10px}
+  .fg{grid-template-columns:1fr}
+  .mtabs button{font-size:11px;padding:7px 4px}
+  .ogrid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .dbtns{gap:4px}
+  .dbtn{font-size:11px;padding:5px 2px}
+}
+/* Horas extras */
+.hs-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.hs-normal{background:#e6f4e6;color:#1e5c1e}
+.hs-extra{background:#fef3db;color:#7a4f00}
+.hs-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+/* Favoritos */
+.fav-star{cursor:pointer;margin-right:4px;font-size:14px;user-select:none}
 </style>
 </head>
 <body>
@@ -99,7 +118,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
       <div class="fld">
         <label>Proyecto</label>
         <div class="proy-wrap">
-          <input type="text" id="ps" placeholder="Buscar proyecto..." oninput="filP()" autocomplete="off"
+          <input type="text" id="ps" placeholder="Buscar proyecto..." oninput="filP()" onfocus="filP()" autocomplete="off"
             style="font-size:14px;padding:9px 11px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);width:100%">
           <div id="pd" class="pdrop"></div>
         </div>
@@ -209,6 +228,37 @@ var OP = ["Eduardo Garcia","Carlos Sarassola","Leonardo Delgado","Milton Placere
 var PR = ["4476 - Canerias tk 520-521","4484 - Suplementos L4","4509 - Dairyco varios","4526 - Instalacion filtros","4532 - Montaje robot","4533 - Armado aireadores","4535 - Aspiracion chocolatada","4537 - Elevacion Tanques CIP","4541 - Dairyco varios 2","4545 - Licor cacao","4546 - Montaje tanques jarabe","4548 - Despaletizadora","4550 - Modificacion estanterias","4553 - Prevencionista L8","4556 - Prevencionista elaborador","4561 - Techo llenadora L8","4562 - Techo tapadora L8","4573 - Tanque aseptico","4579 - Montaje 2500 Gal","4582 - Bandeja Resumidero","4584 - Desmontaje Centrifuga","4585 - TK500 501 502","4587 - Adicionales Pepsico","4589 - Soporteria Inox L8","4590 - Ingenieria Servicios L8","4591 - Centrifugadora GEA","4593 - Deposito TK SJ","4595 - SubCArb L4 L5","4596 - Plataforma Canerias","4598 - Escalera Plataforma L4","4600 - Tornillo Sin Fin","4602 - Trituradora Plastico","4604 - Tolva Envasadora","4605 - Recuperacion Calor","4606 - Plataforma Pailas"];
 var TA = ["Soldadura","Corte","Armado","Pintura","Instalacion","Montaje","Piping","Supervision","Medicion","Mantenimiento","Ingenieria","Transporte"];
 var trabajos = [];
+
+// Favoritos
+var FAVS = JSON.parse(localStorage.getItem("favs") || "[]");
+
+function toggleFav(p) {
+  var idx = FAVS.indexOf(p);
+  if(idx >= 0) FAVS.splice(idx,1); else FAVS.push(p);
+  localStorage.setItem("favs", JSON.stringify(FAVS));
+}
+
+function isFav(p){ return FAVS.indexOf(p) >= 0; }
+
+// Horas extras
+// L-J: 9.5hs normales, V: 8hs normales
+function calcExtras(fecha, horas) {
+  if(!fecha || !horas) return null;
+  var d = new Date(fecha + "T12:00:00");
+  var dow = d.getDay(); // 0=dom,1=lun,...,5=vie,6=sab
+  var normales;
+  if(dow === 0 || dow === 6) {
+    normales = 0; // fin de semana = todo extra
+  } else if(dow === 5) {
+    normales = 8; // viernes
+  } else {
+    normales = 9.5; // lunes a jueves
+  }
+  var norm = Math.min(horas, normales);
+  var extra = Math.max(0, horas - normales);
+  return {norm: norm, extra: extra};
+}
+
 var rid = 0, modo = "r";
 
 function sync() {
@@ -282,22 +332,49 @@ function filP() {
   var q = document.getElementById("ps").value.toLowerCase();
   var pd = document.getElementById("pd");
   document.getElementById("pv").value = "";
-  if(!q){ pd.style.display = "none"; return; }
+  if(!q){
+    // Sin query: mostrar favoritos
+    var favs = PR.filter(function(p){ return isFav(p); });
+    if(!favs.length){ pd.style.display = "none"; return; }
+    pd.innerHTML = "";
+    pd.style.display = "block";
+    favs.forEach(function(p){ addPitem(pd, p, true); });
+    return;
+  }
   var f = PR.filter(function(p){ return p.toLowerCase().indexOf(q) >= 0; });
   if(!f.length){ pd.style.display = "none"; return; }
+  // Ordenar: favoritos primero
+  f.sort(function(a,b){ return (isFav(b)?1:0)-(isFav(a)?1:0); });
   pd.innerHTML = "";
   pd.style.display = "block";
-  f.forEach(function(p) {
-    var div = document.createElement("div");
-    div.className = "pitem";
-    div.textContent = p;
-    div.onclick = function() {
-      document.getElementById("ps").value = p;
-      document.getElementById("pv").value = p;
-      pd.style.display = "none";
-    };
-    pd.appendChild(div);
-  });
+  f.forEach(function(p){ addPitem(pd, p, isFav(p)); });
+}
+
+function addPitem(pd, p, fav) {
+  var div = document.createElement("div");
+  div.className = "pitem";
+  div.style.display = "flex";
+  div.style.alignItems = "center";
+  var star = document.createElement("span");
+  star.className = "fav-star";
+  star.textContent = fav ? "⭐" : "☆";
+  star.onclick = function(e) {
+    e.stopPropagation();
+    toggleFav(p);
+    filP();
+  };
+  var txt = document.createElement("span");
+  txt.textContent = p;
+  txt.style.flex = "1";
+  div.appendChild(star);
+  div.appendChild(txt);
+  div.onclick = function(e) {
+    if(e.target === star) return;
+    document.getElementById("ps").value = p;
+    document.getElementById("pv").value = p;
+    pd.style.display = "none";
+  };
+  pd.appendChild(div);
 }
 
 document.addEventListener("click", function(e) {
@@ -433,16 +510,27 @@ function rH() {
     var tot=t.operarios.reduce(function(s,o){ return s+o.horas; },0);
     var p=t.fecha.split("-");
     var div=document.createElement("div"); div.className="hcrd";
+    var extInfo = (function(){
+      var totNorm=0,totExtra=0;
+      t.operarios.forEach(function(o){
+        var e=calcExtras(t.fecha,o.horas);
+        if(e){totNorm+=e.norm;totExtra+=e.extra;}else{totNorm+=o.horas;}
+      });
+      var s="";
+      if(totNorm>0) s+='<span class="hs-badge hs-normal">Normal: '+totNorm.toFixed(1)+' hs</span>';
+      if(totExtra>0) s+=' <span class="hs-badge hs-extra">Extra: '+totExtra.toFixed(1)+' hs</span>';
+      return s;
+    })();
     div.innerHTML=
       "<div style='display:flex;justify-content:space-between;margin-bottom:8px'>" +
         "<div>" +
           "<div style='font-size:14px;font-weight:500'>" + t.proyecto + "</div>" +
           "<div style='font-size:12px;color:var(--tx2)'><span class='bdg'>" + t.tarea + "</span> " + p[2]+"/"+p[1]+"/"+p[0] + " por " + t.encargado + "</div>" +
+          '<div class="hs-row">' + extInfo + '</div>' +
           (t.obs?"<div style='font-size:12px;color:var(--tx2);font-style:italic'>"+t.obs+"</div>":"") +
         "</div>" +
         "<div style='text-align:right'>" +
-          "<div style='font-size:20px;font-weight:500'>" + tot.toFixed(1) + "</div>" +
-          "<div style='font-size:11px;color:var(--tx2)'>hs</div>" +
+          "<div style='font-size:20px;font-weight:500'>" + tot.toFixed(1) + " hs</div>" +
         "</div>" +
       "</div>" +
       "<div class='ol'>" + t.operarios.map(function(o){
