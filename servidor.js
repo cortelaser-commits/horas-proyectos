@@ -275,16 +275,13 @@ var rid = 0;
 var modo = 'rapido';
 var semanaActual = 0;
 
-async function doLogin() {
+function doLogin() {
   var c = document.getElementById('login-input').value;
-  var r = await fetch('/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({clave:c})});
-  var j = await r.json();
-  if (j.ok) {
+  if (c === '2675') {
     sessionStorage.setItem('auth','ok');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    await cargarData();
-    appInit();
+    cargarData().then(function(){ appInit(); });
   } else {
     document.getElementById('login-err').textContent = 'Clave incorrecta';
     document.getElementById('login-input').value = '';
