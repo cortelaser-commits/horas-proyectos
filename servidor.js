@@ -136,7 +136,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 
-<div class="login-screen" id="login-screen">
+<div class="login-screen" id="login-screen" style="display:none">
   <div style="text-align:center;color:#fff;margin-bottom:10px">
     <div style="font-size:32px;margin-bottom:8px"><i class="ti ti-clock"></i></div>
     <div style="font-size:20px;font-weight:700">Horas por Proyecto</div>
@@ -152,7 +152,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<div id="app" style="display:none">
+<div id="app">
 <div class="hdr">
   <div class="hico"><i class="ti ti-clock"></i></div>
   <div><div style="font-size:16px;font-weight:500">Horas por Proyecto</div><div style="font-size:12px;color:var(--tx2)">Fischer Montajes</div></div>
