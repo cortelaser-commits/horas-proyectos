@@ -531,12 +531,10 @@ function addI(key,iid){var v=document.getElementById(iid).value.trim();if(!v)ret
 function rmI(key,i){D[key].splice(i,1);sync();poblarSelects();poblarChecks();renderA();}
 function expCSV(){var rows=["Fecha,Proyecto,Tarea,Encargado,Operario,Tarea Operario,Horas,Observaciones"];D.trabajos.forEach(function(t){t.operarios.forEach(function(o){rows.push(t.fecha+',"'+t.proyecto+'","'+t.tarea+'","'+t.encargado+'","'+o.operario+'","'+o.tarea+'",'+o.horas+',"'+(t.obs||'')+'"');});});var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.join('\\n')],{type:'text/csv'}));a.download='horas_fischer.csv';a.click();}
 
-// Auto-login si ya tiene sesion
-if (sessionStorage.getItem('auth') === 'ok') {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  cargarData().then(function(){ appInit(); });
-}
+// Auto-login directo sin clave
+document.getElementById('login-screen').style.display = 'none';
+document.getElementById('app').style.display = 'block';
+cargarData().then(function(){ appInit(); });
 </script>
 </body>
 </html>`;
