@@ -35,7 +35,10 @@ const server=http.createServer(async(req,res)=>{
 
   if(req.method==='GET'&&req.url==='/'){
     const data=await leer();
-    const j=JSON.stringify(data);
+    const j=JSON.stringify(data)
+      .replace(/\\/g,'\\\\')
+      .replace(/`/g,'\\`')
+      .replace(/<\/script>/gi,'<\\/script>');
     const html=PAGE.replace('__DATA__',j);
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});
     res.end(html);return;
