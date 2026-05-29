@@ -211,9 +211,24 @@ function poblar(){
 }
 
 function poblarChecks(){
-  document.getElementById('og').innerHTML=OPERARIOS.map(function(op){
-    return '<label class="ochk"><input type="checkbox" value="'+op+'" onchange="this.closest(\'.ochk\').classList.toggle(\'sel\',this.checked);cT()"><i class="ti ti-user" style="font-size:14px"></i>'+op+'</label>';
-  }).join('');
+  var og = document.getElementById('og');
+  og.innerHTML = '';
+  OPERARIOS.forEach(function(op){
+    var lbl = document.createElement('label');
+    lbl.className = 'ochk';
+    var inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.value = op;
+    inp.onchange = function(){ this.parentElement.classList.toggle('sel', this.checked); cT(); };
+    var ico = document.createElement('i');
+    ico.className = 'ti ti-user';
+    ico.style.fontSize = '14px';
+    var txt = document.createTextNode(op);
+    lbl.appendChild(inp);
+    lbl.appendChild(ico);
+    lbl.appendChild(txt);
+    og.appendChild(lbl);
+  });
 }
 
 function sF(d){
