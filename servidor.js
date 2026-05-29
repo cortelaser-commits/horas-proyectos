@@ -290,8 +290,13 @@ function doLogin() {
 }
 
 async function cargarData() {
-  var r = await fetch('/data');
-  D = await r.json();
+  try {
+    var r = await fetch('/data');
+    if (!r.ok) throw new Error('error');
+    D = await r.json();
+  } catch(e) {
+    D = {operarios:[],proyectos:[],tareas:[],trabajos:[],favoritos:[],proyectosCerrados:[],limites:{}};
+  }
   D.favoritos = D.favoritos || [];
   D.proyectosCerrados = D.proyectosCerrados || [];
   D.limites = D.limites || {};
