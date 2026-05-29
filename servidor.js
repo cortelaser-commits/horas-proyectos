@@ -282,8 +282,7 @@ function aI(key,iid){var v=document.getElementById(iid).value.trim();if(!v)retur
 function rI(key,i){D[key].splice(i,1);sync();poblar();poblarChecks();rA();}
 function eCSV(){var rows=["Fecha,Proyecto,Tarea,Encargado,Operario,Horas"];D.trabajos.forEach(function(t){t.operarios.forEach(function(o){rows.push(t.fecha+',"'+t.proyecto+'","'+t.tarea+'","'+t.encargado+'","'+o.operario+'",'+o.horas);});});var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.join('\\n')],{type:'text/csv'}));a.download='horas.csv';a.click();}
 
-// INICIO
-poblar();poblarChecks();sF(0);aR();
+window.onload=function(){poblar();poblarChecks();sF(0);aR();};
 </script></body></html>`;
 
 conectar().then(function(){server.listen(PORT,function(){console.log('Servidor Puerto '+PORT);});});
