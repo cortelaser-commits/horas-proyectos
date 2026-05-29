@@ -212,7 +212,7 @@ function poblar(){
 
 function poblarChecks(){
   document.getElementById('og').innerHTML=OPERARIOS.map(function(op){
-    return '<label class="ochk"><input type="checkbox" value="'+op+'" onchange="this.closest(\'label\').classList.toggle(\'sel\',this.checked);cT()"><i class="ti ti-user" style="font-size:14px"></i>'+op+'</label>';
+    return '<label class="ochk"><input type="checkbox" value="'+op+'" onchange="this.closest(\'.ochk\').classList.toggle(\'sel\',this.checked);cT()"><i class="ti ti-user" style="font-size:14px"></i>'+op+'</label>';
   }).join('');
 }
 
