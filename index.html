@@ -74,45 +74,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 .tst.on{display:flex}
 .emp{text-align:center;padding:2rem;color:var(--tx2);font-size:14px}
 @media(max-width:420px){.fg{grid-template-columns:1fr}.ag{grid-template-columns:1fr}}
-
-@media(max-width:600px){
-  .hdr{padding:10px 12px}
-  .tab{padding:9px 4px;font-size:11px;min-width:60px}
-  .crd{padding:12px 10px}
-  .fg{grid-template-columns:1fr}
-  .mtabs button{font-size:11px;padding:7px 4px}
-  .ogrid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
-  .dbtns{gap:4px}
-  .dbtn{font-size:11px;padding:5px 2px}
-}
-.hs-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
-.hs-normal{background:#e6f4e6;color:#1e5c1e}
-.hs-extra{background:#fef3db;color:#7a4f00}
-.hs-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-.fav-star{cursor:pointer;margin-right:4px;font-size:14px;user-select:none}
-.obs-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.obs-chip{padding:5px 10px;border-radius:20px;font-size:12px;cursor:pointer;border:.5px solid var(--bd);background:var(--bg2);color:var(--tx2)}
-.obs-chip:hover{background:var(--ibg);border-color:var(--ic);color:var(--ic)}
-.admin-badge{background:#1a1a18;color:#fff;font-size:10px;padding:2px 6px;border-radius:10px;margin-left:4px}
 </style>
 </head>
-<body>
-<div id="login-screen" style="position:fixed;inset:0;background:#1a1a18;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:20px">
-  <div style="text-align:center;color:#fff;margin-bottom:10px">
-    <div style="font-size:32px;margin-bottom:8px"><i class="ti ti-clock"></i></div>
-    <div style="font-size:20px;font-weight:700">Horas por Proyecto</div>
-    <div style="font-size:13px;opacity:.5;margin-top:4px">Fischer Montajes</div>
-  </div>
-  <div style="background:#fff;border-radius:12px;padding:28px 32px;width:100%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.3)">
-    <div style="font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:12px">Clave de acceso</div>
-    <input id="login-input" type="password" placeholder="••••" maxlength="20"
-      style="width:100%;height:44px;text-align:center;font-size:22px;letter-spacing:6px;border:1.5px solid #ddd;border-radius:8px;outline:none;color:#1a1a18;background:#f5f4f0"
-      onkeydown="if(event.key==='Enter')doLogin()">
-    <div id="login-err" style="color:#a32d2d;font-size:12px;margin-top:8px;min-height:16px;text-align:center"></div>
-    <button onclick="doLogin()" style="width:100%;height:42px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:12px">Ingresar</button>
-  </div>
-</div>
-
+<body><div id="ls" style="position:fixed;inset:0;background:#1a1a18;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px"><div style="text-align:center;color:#fff"><div style="font-size:28px;margin-bottom:6px">&#128336;</div><div style="font-size:18px;font-weight:700">Horas por Proyecto</div><div style="font-size:12px;opacity:.5">Fischer Montajes</div></div><div style="background:#fff;border-radius:12px;padding:24px 28px;width:290px"><div style="font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:10px">Clave de acceso</div><input id="li" type="password" placeholder="••••" style="width:100%;height:42px;text-align:center;font-size:20px;letter-spacing:5px;border:1.5px solid #ddd;border-radius:8px;outline:none;color:#1a1a18;background:#f5f4f0" /><div id="le" style="color:#a32d2d;font-size:12px;margin-top:6px;min-height:14px;text-align:center"></div><button id="lb" style="width:100%;height:40px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">Ingresar</button></div></div>
 <div id="app" style="display:none"><div class="hdr">
   <div class="hico"><i class="ti ti-clock"></i></div>
   <div>
@@ -124,8 +88,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
   <button class="tab on" onclick="goTab('c',this)"><i class="ti ti-clock"></i> Cargar</button>
   <button class="tab" onclick="goTab('h',this)"><i class="ti ti-list"></i> Historial</button>
   <button class="tab" onclick="goTab('r',this)"><i class="ti ti-chart-bar"></i> Resumen</button>
-  <button class="tab" onclick="goTab('s',this)"><i class="ti ti-calendar-week"></i> Semana</button>
-  <button class="tab" onclick="goTab('op',this)"><i class="ti ti-user"></i> Operario</button>
   <button class="tab" onclick="goTab('a',this)"><i class="ti ti-settings"></i> Admin</button>
 </div>
 <div id="tst" class="tst"><i class="ti ti-check"></i><span id="tm"></span></div>
@@ -137,7 +99,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
       <div class="fld">
         <label>Proyecto</label>
         <div class="proy-wrap">
-          <input type="text" id="ps" placeholder="Buscar proyecto..." oninput="filP()" onfocus="filP()" autocomplete="off"
+          <input type="text" id="ps" placeholder="Buscar proyecto..." oninput="filP()" autocomplete="off"
             style="font-size:14px;padding:9px 11px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);width:100%">
           <div id="pd" class="pdrop"></div>
         </div>
@@ -164,13 +126,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
     <div class="fld">
       <label>Observaciones</label>
       <input type="text" id="fo" placeholder="Opcional...">
-      <div class="obs-chips">
-        <div class="obs-chip" onclick="addObs('Lluvia')">🌧 Lluvia</div>
-        <div class="obs-chip" onclick="addObs('Materiales faltantes')">📦 Mat. faltantes</div>
-        <div class="obs-chip" onclick="addObs('Trabajo en altura')">⬆ Altura</div>
-        <div class="obs-chip" onclick="addObs('Espacio confinado')">⚠ Esp. confinado</div>
-        <div class="obs-chip" onclick="addObs('Horas extras')">⏰ Horas extras</div>
-      </div>
     </div>
   </div>
   <div class="crd">
@@ -203,27 +158,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
   </div>
 </div>
 
-
-<div id="pnl-s" class="pnl">
-  <div class="semana-tabs" id="sem-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
-  <div id="sem-content"></div>
-</div>
-<div id="pnl-op" class="pnl">
-  <div class="crd">
-    <div class="ct"><i class="ti ti-user"></i> Ver por operario</div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-      <select id="op-sel" onchange="rOp()" style="flex:1;font-size:14px;padding:9px 11px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);-webkit-appearance:none">
-        <option value="">-- seleccionar operario --</option>
-      </select>
-      <select id="op-periodo" onchange="rOp()" style="font-size:13px;padding:9px 11px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);-webkit-appearance:none">
-        <option value="mes">Este mes</option>
-        <option value="semana">Esta semana</option>
-        <option value="todo">Todo</option>
-      </select>
-    </div>
-    <div id="op-content"><div class="emp">Selecciona un operario</div></div>
-  </div>
-</div>
 <div id="pnl-h" class="pnl">
   <div class="fb">
     <select id="flp" onchange="rH()"><option value="">Todos los proyectos</option></select>
@@ -271,165 +205,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 </div>
 
 <script>
-
-var CLAVE_OP = "2675";
-var CLAVE_ADM = "9999";
-var esAdmin = false;
-var FAVS = JSON.parse(localStorage.getItem("favs") || "[]");
-var semActual = 0;
-
-function doLogin() {
-  var c = document.getElementById("login-input").value;
-  if(c === CLAVE_OP || c === CLAVE_ADM) {
-    esAdmin = (c === CLAVE_ADM);
-    document.getElementById("login-screen").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    sessionStorage.setItem("auth", "ok");
-    sessionStorage.setItem("admin", esAdmin ? "1" : "0");
-    // Mostrar badge admin en tab
-    if(esAdmin) {
-      var tabA = document.querySelector("[onclick="goTab('a',this)"]");
-      if(tabA) tabA.innerHTML += '<span class="admin-badge">ADM</span>';
-    }
-  } else {
-    document.getElementById("login-err").textContent = "Clave incorrecta";
-    document.getElementById("login-input").value = "";
-    setTimeout(function(){ document.getElementById("login-err").textContent = ""; }, 2000);
-  }
-}
-
-if(sessionStorage.getItem("auth") === "ok") {
-  esAdmin = sessionStorage.getItem("admin") === "1";
-  document.addEventListener("DOMContentLoaded", function() {
-    document.getElementById("login-screen").style.display = "none";
-    document.getElementById("app").style.display = "block";
-  });
-}
-
-function addObs(txt) {
-  var fo = document.getElementById("fo");
-  fo.value = fo.value ? fo.value + ", " + txt : txt;
-}
-
-function isFav(p){ return FAVS.indexOf(p) >= 0; }
-function toggleFav(p) {
-  var idx = FAVS.indexOf(p);
-  if(idx >= 0) FAVS.splice(idx,1); else FAVS.push(p);
-  localStorage.setItem("favs", JSON.stringify(FAVS));
-}
-
-// Horas extras: L-J 9.5hs normales, V 8hs normales, S-D todo extra
-function calcExtras(fecha, horas) {
-  if(!fecha || !horas) return {norm:horas, extra:0};
-  var d = new Date(fecha + "T12:00:00");
-  var dow = d.getDay();
-  var normales = (dow===0||dow===6) ? 0 : (dow===5 ? 8 : 9.5);
-  return {norm: Math.min(horas, normales), extra: Math.max(0, horas-normales)};
-}
-
-// Semanas
-function getSemanas(){
-  var sems=[], hoy=new Date();
-  for(var i=0;i<5;i++){
-    var d=new Date(hoy); d.setDate(d.getDate()-i*7);
-    var lun=new Date(d); lun.setDate(d.getDate()-((d.getDay()+6)%7));
-    var vie=new Date(lun); vie.setDate(lun.getDate()+4);
-    sems.push({
-      desde:lun.toISOString().split("T")[0],
-      hasta:vie.toISOString().split("T")[0],
-      label:i===0?"Esta semana":i===1?"Sem. pasada":lun.getDate()+"/"+(lun.getMonth()+1)
-    });
-  }
-  return sems;
-}
-
-function rSemana(){
-  var sems = getSemanas();
-  var tabs = document.getElementById("sem-tabs");
-  tabs.innerHTML = "";
-  sems.forEach(function(s,i){
-    var btn = document.createElement("div");
-    btn.style = "padding:6px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--bd);background:"+(i===semActual?"var(--tx)":"var(--bg2)")+";color:"+(i===semActual?"var(--bg)":"var(--tx2)");
-    btn.textContent = s.label;
-    btn.onclick = (function(idx){ return function(){ semActual=idx; rSemana(); }; })(i);
-    tabs.appendChild(btn);
-  });
-  var sem = sems[semActual];
-  var tr = trabajos.filter(function(t){ return t.fecha>=sem.desde && t.fecha<=sem.hasta; });
-  var byOp = {};
-  tr.forEach(function(t){ t.operarios.forEach(function(o){ byOp[o.operario]=(byOp[o.operario]||0)+o.horas; }); });
-  var totSem = Object.values(byOp).reduce(function(s,v){ return s+v; },0);
-  var totExtra = 0;
-  tr.forEach(function(t){ t.operarios.forEach(function(o){ var e=calcExtras(t.fecha,o.horas); totExtra+=e.extra; }); });
-  var cont = document.getElementById("sem-content");
-  if(!tr.length){ cont.innerHTML="<div class='emp'><i class='ti ti-calendar'></i><br>Sin registros esta semana</div>"; return; }
-  var html = "<div class='crd'><div class='ct'>Semana: <strong>"+totSem.toFixed(1)+" hs</strong>";
-  if(totExtra>0) html += " &nbsp;<span class='hs-badge hs-extra'>Extra: "+totExtra.toFixed(1)+" hs</span>";
-  html += "</div>";
-  Object.entries(byOp).sort(function(a,b){ return b[1]-a[1]; }).forEach(function(e){
-    var extraOp=0;
-    tr.forEach(function(t){ t.operarios.forEach(function(o){ if(o.operario===e[0]){ var ex=calcExtras(t.fecha,o.horas); extraOp+=ex.extra; } }); });
-    html += "<div style='display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid var(--bd);font-size:13px'><span>"+e[0]+"</span><span style='font-weight:500'>"+e[1].toFixed(1)+" hs"+(extraOp>0?" <span class='hs-badge hs-extra'>+"+extraOp.toFixed(1)+"</span>":"")+"</span></div>";
-  });
-  html += "</div><div class='crd'><div class='ct'>Por proyecto</div>";
-  tr.forEach(function(t){
-    var tot=t.operarios.reduce(function(s,o){ return s+o.horas; },0);
-    var p=t.fecha.split("-");
-    html += "<div style='padding:8px 0;border-bottom:.5px solid var(--bd)'><div style='font-size:13px;font-weight:500'>"+t.proyecto+"</div><div style='font-size:12px;color:var(--tx2)'>"+p[2]+"/"+p[1]+" - "+t.tarea+" - "+tot.toFixed(1)+" hs</div><div style='font-size:12px;color:var(--tx2);margin-top:2px'>"+t.operarios.map(function(o){ return o.operario+" ("+o.horas+"hs)"; }).join(", ")+"</div></div>";
-  });
-  html += "</div>";
-  cont.innerHTML = html;
-}
-
-function rOp(){
-  var sel = document.getElementById("op-sel").value;
-  var per = document.getElementById("op-periodo").value;
-  var cont = document.getElementById("op-content");
-  if(!sel){ cont.innerHTML="<div class='emp'>Selecciona un operario</div>"; return; }
-  var hoy = new Date().toISOString().split("T")[0];
-  var mes = hoy.slice(0,7);
-  var lun = new Date(); lun.setDate(lun.getDate()-((lun.getDay()+6)%7));
-  var lunStr = lun.toISOString().split("T")[0];
-  var tr = trabajos.filter(function(t){
-    var tieneOp = t.operarios.find(function(o){ return o.operario===sel; });
-    if(!tieneOp) return false;
-    if(per==="mes") return t.fecha.startsWith(mes);
-    if(per==="semana") return t.fecha>=lunStr;
-    return true;
-  });
-  if(!tr.length){ cont.innerHTML="<div class='emp'>Sin registros</div>"; return; }
-  var totHs=0, totExtra=0;
-  tr.forEach(function(t){ t.operarios.forEach(function(o){ if(o.operario===sel){ totHs+=o.horas; var e=calcExtras(t.fecha,o.horas); totExtra+=e.extra; } }); });
-  var html = "<div style='display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap'>";
-  html += "<div class='st' style='flex:1'><div class='sl'>Total horas</div><div class='sv'>"+totHs.toFixed(1)+"</div></div>";
-  html += "<div class='st' style='flex:1'><div class='sl'>Horas extras</div><div class='sv' style='color:var(--wc,#7a4f00)'>"+totExtra.toFixed(1)+"</div></div>";
-  html += "<div class='st' style='flex:1'><div class='sl'>Trabajos</div><div class='sv'>"+tr.length+"</div></div>";
-  html += "</div>";
-  tr.forEach(function(t){
-    var op = t.operarios.find(function(o){ return o.operario===sel; });
-    if(!op) return;
-    var e = calcExtras(t.fecha, op.horas);
-    var p = t.fecha.split("-");
-    html += "<div class='hcrd'>";
-    html += "<div style='display:flex;justify-content:space-between'>";
-    html += "<div><div style='font-size:13px;font-weight:500'>"+t.proyecto+"</div>";
-    html += "<div style='font-size:12px;color:var(--tx2)'>"+p[2]+"/"+p[1]+"/"+p[0]+" - "+op.tarea+"</div></div>";
-    html += "<div style='text-align:right'><div style='font-size:18px;font-weight:500'>"+op.horas+" hs</div>";
-    if(e.extra>0) html += "<span class='hs-badge hs-extra'>+"+e.extra.toFixed(1)+" extra</span>";
-    html += "</div></div></div>";
-  });
-  cont.innerHTML = html;
-}
-
-function fillOpSel(){
-  var sel = document.getElementById("op-sel");
-  var v = sel.value;
-  sel.innerHTML = "<option value=''>-- seleccionar operario --</option>";
-  OP.forEach(function(x){ sel.innerHTML += "<option value='"+x+"'>"+x+"</option>"; });
-  sel.value = v;
-}
-
-
 var OP = ["Eduardo Garcia","Carlos Sarassola","Leonardo Delgado","Milton Placeres","Victor Gallo","Alejandro Bentancur","Julio Saracho","Luciano Sarassola","Lucas Placeres","Cristian Sanchez","Enrique Avero","Santiago Da Silva","Sebastian Da Silva","Sergio Bornia","Carlos Gonzales","Maikel Bravo","Adrian Ramos","Octavio Bonnahon","Angel Barreto"];
 var PR = ["4476 - Canerias tk 520-521","4484 - Suplementos L4","4509 - Dairyco varios","4526 - Instalacion filtros","4532 - Montaje robot","4533 - Armado aireadores","4535 - Aspiracion chocolatada","4537 - Elevacion Tanques CIP","4541 - Dairyco varios 2","4545 - Licor cacao","4546 - Montaje tanques jarabe","4548 - Despaletizadora","4550 - Modificacion estanterias","4553 - Prevencionista L8","4556 - Prevencionista elaborador","4561 - Techo llenadora L8","4562 - Techo tapadora L8","4573 - Tanque aseptico","4579 - Montaje 2500 Gal","4582 - Bandeja Resumidero","4584 - Desmontaje Centrifuga","4585 - TK500 501 502","4587 - Adicionales Pepsico","4589 - Soporteria Inox L8","4590 - Ingenieria Servicios L8","4591 - Centrifugadora GEA","4593 - Deposito TK SJ","4595 - SubCArb L4 L5","4596 - Plataforma Canerias","4598 - Escalera Plataforma L4","4600 - Tornillo Sin Fin","4602 - Trituradora Plastico","4604 - Tolva Envasadora","4605 - Recuperacion Calor","4606 - Plataforma Pailas"];
 var TA = ["Soldadura","Corte","Armado","Pintura","Instalacion","Montaje","Piping","Supervision","Medicion","Mantenimiento","Ingenieria","Transporte"];
@@ -458,8 +233,6 @@ function goTab(t, el) {
   if(t === "h") { fillF(); rH(); }
   if(t === "r") rR();
   if(t === "a") rA();
-  if(t === "s") rSemana();
-  if(t === "op") { fillOpSel(); rOp(); }
 }
 
 function poblar() {
@@ -509,29 +282,16 @@ function filP() {
   var q = document.getElementById("ps").value.toLowerCase();
   var pd = document.getElementById("pd");
   document.getElementById("pv").value = "";
-  var lista;
-  if(!q) {
-    lista = PR.filter(function(p){ return isFav(p); });
-    if(!lista.length){ pd.style.display = "none"; return; }
-  } else {
-    lista = PR.filter(function(p){ return p.toLowerCase().indexOf(q) >= 0; });
-    lista.sort(function(a,b){ return (isFav(b)?1:0)-(isFav(a)?1:0); });
-    if(!lista.length){ pd.style.display = "none"; return; }
-  }
-  pd.innerHTML = ""; pd.style.display = "block";
-  lista.forEach(function(p) {
+  if(!q){ pd.style.display = "none"; return; }
+  var f = PR.filter(function(p){ return p.toLowerCase().indexOf(q) >= 0; });
+  if(!f.length){ pd.style.display = "none"; return; }
+  pd.innerHTML = "";
+  pd.style.display = "block";
+  f.forEach(function(p) {
     var div = document.createElement("div");
     div.className = "pitem";
-    div.style = "display:flex;align-items:center";
-    var star = document.createElement("span");
-    star.className = "fav-star";
-    star.textContent = isFav(p) ? "⭐" : "☆";
-    star.onclick = function(e){ e.stopPropagation(); toggleFav(p); filP(); };
-    var txt = document.createElement("span");
-    txt.textContent = p; txt.style.flex = "1";
-    div.appendChild(star); div.appendChild(txt);
-    div.onclick = function(e){
-      if(e.target===star) return;
+    div.textContent = p;
+    div.onclick = function() {
       document.getElementById("ps").value = p;
       document.getElementById("pv").value = p;
       pd.style.display = "none";
@@ -771,13 +531,26 @@ poblarChecks();
 sF(0);
 aR();
 cargarRemoto();
-// Poblar select operario en tab op
-fillOpSel();
-// Ocultar tab admin si no es admin
-if(sessionStorage.getItem("auth")==="ok" && sessionStorage.getItem("admin")!=="1"){
-  document.querySelectorAll(".tab").forEach(function(t){
-    if(t.textContent.indexOf("Admin")>=0) t.style.display="none";
-  });
+
+document.getElementById("lb").addEventListener("click", function() {
+  var v = document.getElementById("li").value;
+  if(v === "2675" || v === "9999") {
+    document.getElementById("ls").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    sessionStorage.setItem("auth","ok");
+    sessionStorage.setItem("adm", v==="9999"?"1":"0");
+  } else {
+    document.getElementById("le").textContent = "Clave incorrecta";
+    document.getElementById("li").value = "";
+    setTimeout(function(){ document.getElementById("le").textContent=""; }, 2000);
+  }
+});
+document.getElementById("li").addEventListener("keydown", function(e) {
+  if(e.key === "Enter") document.getElementById("lb").click();
+});
+if(sessionStorage.getItem("auth") === "ok") {
+  document.getElementById("ls").style.display = "none";
+  document.getElementById("app").style.display = "block";
 }
 </script>
 </div></body>
