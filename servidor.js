@@ -289,14 +289,27 @@ function doLogin() {
   }
 }
 
+var DATOS_BASE = {
+  operarios: ["Eduardo García","Carlos Sarassola","Leonardo Delgado","Milton Placeres","Victor Gallo","Alejandro Bentancur","Julio Saracho","Luciano Sarassola","Lucas Placeres","Cristian Sánchez","Enrique Avero","Santiago Da Silva","Sebastián Da Silva","Sergio Bornia","Carlos Gonzales","Maikel Bravo","Adrian Ramos","Octavio Bonnahon","Angel Barreto"],
+  proyectos: ["4476 - Cañerias para nuevo tk 520-521","4477 - Cinta para fechadores","4484 - Suplementos transportes L4","4487 - Prevencionista Barredor de Lodo","4509 - Trabajos varios planta Dairyco","4512 - Transferencias de cadenas transporte pallets","4518 - RETIRO Y GESTION DE RESIDUOS DE EMBALAJE","4519 - Reparacion tornillo sin fin Maquina de hielo","4526 - Instalacion de filtros en caneria de producto","4532 - Montaje de robot final de linea y transportadores","4533 - Armado de aireadores","4535 - Aspiracion chocolatada","4536 - Adicionales corrimiento caneria","4537 - Equipos Elevacion Tanques CIP","4538 - Hidrogrua para montaje de transportes Linea 8","4539 - Asistencia tecnica pruebas Inspector MIJO","4540 - Transportador Rechazo linea UHT","4541 - Trabajos varios planta Dairyco","4543 - Reparacion tornillo sin fin maquina hielo","4545 - Instalacion mecanica planta licor cacao Rev2","4546 - Descarga y montaje tanques sala jarabe Tetra Pack","4547 - Equipos de izaje montaje tanques sala jarabe","4548 - Descarga y montaje despaletizadora","4549 - Equipos de izaje montaje paletizadora y horno","4550 - Modificacion estanterias camara de frio","4551 - Materiales corrimiento canerias sala jarabe","4552 - Puente grua giratorio tostadora Neptuno","4553 - Prevencionista montaje Linea 8","4556 - Prevencionista montaje elaborador","4557 - Cambio de caneria purificadoras agua","4561 - Techo salida llenadora L8","4562 - Techo tapadora L8","4563 - Seguridad de horno y tapadora de L8","4573 - Montaje del tanque aseptico","4574 - Mantenimiento proceso de tostacion Radar","4579 - Montaje 2500 Gal y 500 Gal","4582 - Bandeja Resumidero","4584 - Desmontaje Centrifuga Alfa Laval","4585 - Instalacion TK500 501 502 SJ","4587 - Adicionales Pepsico","4589 - Soporteria Inoxidable Servicios L8","4590 - Ingenieria e Instalacion Servicios L8","4591 - Montaje Centrifugadora GEA","4593 - Deposito TK SJ y Oficina Krones","4595 - Instalacion SubCArb L4 L5","4596 - Mano de obra Plataforma y Canerias","4597 - Fabricacion Perfil Inoxidable","4598 - Escalera Plataforma L4","4599 - Modificacion Caneria Existente","4600 - Fabricacion Tornillo Sin Fin","4601 - Relevamiento Sala de Envasado y Silos","4602 - Trituradora de Plastico","4603 - Soldadura TIG 30 Piezas","4604 - Tolva Envasadora","4605 - Sistema recuperacion de Calor","4606 - Plataforma Pailas"],
+  tareas: ["Soldadura","Corte","Armado","Pintura","Instalacion","Montaje","Piping","Supervision","Medicion","Mantenimiento","Ingenieria","Transporte"],
+  trabajos: [], favoritos: [], proyectosCerrados: [], limites: {}
+};
+
 async function cargarData() {
   try {
     var r = await fetch('/data');
     if (!r.ok) throw new Error('error');
-    D = await r.json();
+    var remoto = await r.json();
+    // Usar datos remotos pero asegurarse de tener operarios y proyectos
+    D = remoto;
+    if (!D.operarios || !D.operarios.length) D.operarios = DATOS_BASE.operarios;
+    if (!D.proyectos || !D.proyectos.length) D.proyectos = DATOS_BASE.proyectos;
+    if (!D.tareas || !D.tareas.length) D.tareas = DATOS_BASE.tareas;
   } catch(e) {
-    D = {operarios:[],proyectos:[],tareas:[],trabajos:[],favoritos:[],proyectosCerrados:[],limites:{}};
+    D = JSON.parse(JSON.stringify(DATOS_BASE));
   }
+  D.trabajos = D.trabajos || [];
   D.favoritos = D.favoritos || [];
   D.proyectosCerrados = D.proyectosCerrados || [];
   D.limites = D.limites || {};
