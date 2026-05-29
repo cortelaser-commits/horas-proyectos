@@ -4,21 +4,14 @@ const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || '';
 let db = null, mem = null;
 
-const INIT = {
-  operarios:["Eduardo García","Carlos Sarassola","Leonardo Delgado","Milton Placeres","Victor Gallo","Alejandro Bentancur","Julio Saracho","Luciano Sarassola","Lucas Placeres","Cristian Sánchez","Enrique Avero","Santiago Da Silva","Sebastián Da Silva","Sergio Bornia","Carlos Gonzales","Maikel Bravo","Adrian Ramos","Octavio Bonnahon","Angel Barreto"],
-  proyectos:["4476 - Cañerias tk 520-521","4484 - Suplementos transportes L4","4509 - Trabajos varios Dairyco","4526 - Instalacion filtros caneria","4532 - Montaje robot final linea","4533 - Armado aireadores","4535 - Aspiracion chocolatada","4537 - Elevacion Tanques CIP","4541 - Trabajos varios Dairyco","4545 - Instalacion mecanica licor cacao","4546 - Montaje tanques sala jarabe","4548 - Descarga despaletizadora","4550 - Modificacion estanterias","4553 - Prevencionista Linea 8","4556 - Prevencionista elaborador","4561 - Techo llenadora L8","4562 - Techo tapadora L8","4573 - Montaje tanque aseptico","4579 - Montaje 2500 Gal","4582 - Bandeja Resumidero","4584 - Desmontaje Centrifuga","4585 - Instalacion TK500 501 502","4587 - Adicionales Pepsico","4589 - Soporteria Inox L8","4590 - Ingenieria Servicios L8","4591 - Montaje Centrifugadora GEA","4593 - Deposito TK SJ","4595 - SubCArb L4 L5","4596 - Plataforma y Canerias","4598 - Escalera Plataforma L4","4600 - Fabricacion Tornillo Sin Fin","4602 - Trituradora Plastico","4604 - Tolva Envasadora","4605 - Sistema recuperacion Calor","4606 - Plataforma Pailas"],
-  tareas:["Soldadura","Corte","Armado","Pintura","Instalacion","Montaje","Piping","Supervision","Medicion","Mantenimiento","Ingenieria","Transporte"],
-  trabajos:[],favoritos:[],proyectosCerrados:[],limites:{}
-};
-
 async function conectar(){
   if(!MONGO_URI)return;
   try{const c=new MongoClient(MONGO_URI,{serverSelectionTimeoutMS:5000});await c.connect();db=c.db('horas_app');console.log('MongoDB OK');}catch(e){console.log('Mongo err:',e.message);}
 }
 async function leer(){
   if(mem)return mem;
-  if(!db){mem=JSON.parse(JSON.stringify(INIT));return mem;}
-  try{const d=await db.collection('horas_data').findOne({_id:'data'});mem=d?{...INIT,...d.data}:JSON.parse(JSON.stringify(INIT));}catch(e){mem=JSON.parse(JSON.stringify(INIT));}
+  if(!db){mem={trabajos:[]};return mem;}
+  try{const d=await db.collection('horas_data').findOne({_id:'data'});mem=d?d.data:{trabajos:[]};}catch(e){mem={trabajos:[]};}
   return mem;
 }
 async function guardar(data){
@@ -27,31 +20,12 @@ async function guardar(data){
   try{await db.collection('horas_data').replaceOne({_id:'data'},{_id:'data',data,updatedAt:new Date()},{upsert:true});}catch(e){}
 }
 
-const server=http.createServer(async(req,res)=>{
-  res.setHeader('Access-Control-Allow-Origin','*');
-  res.setHeader('Access-Control-Allow-Methods','GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers','Content-Type');
-  if(req.method==='OPTIONS'){res.writeHead(204);res.end();return;}
-
-  if(req.method==='GET'&&req.url==='/'){
-    const data=await leer();
-    const j=JSON.stringify(data)
-      .replace(/\\/g,'\\\\')
-      .replace(/`/g,'\\`')
-      .replace(/<\/script>/gi,'<\\/script>');
-    const html=PAGE.replace('__DATA__',j);
-    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});
-    res.end(html);return;
-  }
-  if(req.method==='POST'&&req.url==='/data'){
-    let b='';req.on('data',c=>b+=c);req.on('end',async()=>{
-      try{await guardar(JSON.parse(b));res.writeHead(200);res.end('ok');}catch(e){res.writeHead(400);res.end('err');}
-    });return;
-  }
-  res.writeHead(404);res.end('404');
-});
-
-const PAGE=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Horas - Fischer Montajes</title>
+const HTML = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Horas - Fischer Montajes</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -122,7 +96,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background
 .tst.on{display:flex}
 .emp{text-align:center;padding:2rem;color:var(--tx2);font-size:14px}
 @media(max-width:420px){.fg{grid-template-columns:1fr}.ag{grid-template-columns:1fr}}
-</style></head><body>
+</style>
+</head>
+<body>
 <div class="hdr"><div class="hico"><i class="ti ti-clock"></i></div><div><div style="font-size:16px;font-weight:500">Horas por Proyecto</div><div style="font-size:12px;color:var(--tx2)">Fischer Montajes</div></div></div>
 <div class="tabs">
   <button class="tab on" onclick="goTab('c',this)"><i class="ti ti-clock"></i> Cargar</button>
@@ -200,92 +176,230 @@ body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background
 </div>
 
 <script>
-var D=__DATA__;
-var rid=0,modo='r';
-D.operarios=D.operarios&&D.operarios.length?D.operarios:["Eduardo García","Carlos Sarassola","Leonardo Delgado","Milton Placeres","Victor Gallo","Alejandro Bentancur","Julio Saracho","Luciano Sarassola","Lucas Placeres","Cristian Sánchez","Enrique Avero","Santiago Da Silva","Sebastián Da Silva","Sergio Bornia","Carlos Gonzales","Maikel Bravo","Adrian Ramos","Octavio Bonnahon","Angel Barreto"];
-D.proyectos=D.proyectos&&D.proyectos.length?D.proyectos:["4526 - Instalacion filtros","4532 - Montaje robot","4545 - Instalacion licor cacao","4585 - TK500 501 502","4590 - Ingenieria Servicios L8","4606 - Plataforma Pailas"];
-D.tareas=D.tareas&&D.tareas.length?D.tareas:["Soldadura","Corte","Armado","Pintura","Instalacion","Montaje","Supervision"];
-D.trabajos=D.trabajos||[];
-D.favoritos=D.favoritos||[];
+var OPERARIOS = ["Eduardo Garcia","Carlos Sarassola","Leonardo Delgado","Milton Placeres","Victor Gallo","Alejandro Bentancur","Julio Saracho","Luciano Sarassola","Lucas Placeres","Cristian Sanchez","Enrique Avero","Santiago Da Silva","Sebastian Da Silva","Sergio Bornia","Carlos Gonzales","Maikel Bravo","Adrian Ramos","Octavio Bonnahon","Angel Barreto"];
+var PROYECTOS = ["4476 - Canerias tk 520-521","4484 - Suplementos transportes L4","4509 - Trabajos varios Dairyco","4526 - Instalacion filtros","4532 - Montaje robot final linea","4533 - Armado aireadores","4535 - Aspiracion chocolatada","4537 - Elevacion Tanques CIP","4541 - Trabajos varios Dairyco","4545 - Instalacion mecanica licor cacao","4546 - Montaje tanques sala jarabe","4548 - Descarga despaletizadora","4550 - Modificacion estanterias","4553 - Prevencionista Linea 8","4556 - Prevencionista elaborador","4561 - Techo llenadora L8","4562 - Techo tapadora L8","4573 - Montaje tanque aseptico","4579 - Montaje 2500 Gal","4582 - Bandeja Resumidero","4584 - Desmontaje Centrifuga","4585 - Instalacion TK500 501 502","4587 - Adicionales Pepsico","4589 - Soporteria Inox L8","4590 - Ingenieria Servicios L8","4591 - Montaje Centrifugadora GEA","4593 - Deposito TK SJ","4595 - SubCArb L4 L5","4596 - Plataforma y Canerias","4598 - Escalera Plataforma L4","4600 - Tornillo Sin Fin","4602 - Trituradora Plastico","4604 - Tolva Envasadora","4605 - Recuperacion Calor","4606 - Plataforma Pailas"];
+var TAREAS = ["Soldadura","Corte","Armado","Pintura","Instalacion","Montaje","Piping","Supervision","Medicion","Mantenimiento","Ingenieria","Transporte"];
+var trabajos = [];
+var rid = 0, modo = 'r';
 
-function sync(){fetch('/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(D)}).catch(function(){});}
+function sync(){
+  fetch('/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operarios:OPERARIOS,proyectos:PROYECTOS,tareas:TAREAS,trabajos:trabajos})}).catch(function(){});
+}
+
+function cargarTrabajosDelServidor(){
+  fetch('/data').then(function(r){return r.json();}).then(function(d){
+    if(d && d.trabajos) trabajos = d.trabajos;
+  }).catch(function(){});
+}
 
 function goTab(t,el){
   document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('on')});
   document.querySelectorAll('.pnl').forEach(function(p){p.classList.remove('on')});
-  el.classList.add('on');document.getElementById('pnl-'+t).classList.add('on');
-  if(t==='h'){fF();rH();}if(t==='r')rR();if(t==='a')rA();
+  el.classList.add('on');
+  document.getElementById('pnl-'+t).classList.add('on');
+  if(t==='h'){fF();rH();}
+  if(t==='r') rR();
+  if(t==='a') rA();
 }
 
 function poblar(){
-  var ft=document.getElementById('ft'),fe=document.getElementById('fe');
-  var vt=ft.value,ve=fe.value;
-  ft.innerHTML='<option value="">-- seleccionar --</option>'+D.tareas.map(function(x){return'<option value="'+x+'">'+x+'</option>';}).join('');
-  fe.innerHTML='<option value="">-- seleccionar --</option>'+D.operarios.map(function(x){return'<option value="'+x+'">'+x+'</option>';}).join('');
-  ft.value=vt;fe.value=ve;
-  // restaurar ultimo encargado
+  var ft=document.getElementById('ft'), fe=document.getElementById('fe');
+  ft.innerHTML='<option value="">-- seleccionar --</option>'+TAREAS.map(function(x){return'<option value="'+x+'">'+x+'</option>';}).join('');
+  fe.innerHTML='<option value="">-- seleccionar --</option>'+OPERARIOS.map(function(x){return'<option value="'+x+'">'+x+'</option>';}).join('');
   var ul=localStorage.getItem('ue');
-  if(ul&&!ve){for(var i=0;i<fe.options.length;i++){if(fe.options[i].value===ul){fe.value=ul;break;}}}
+  if(ul){for(var i=0;i<fe.options.length;i++){if(fe.options[i].value===ul){fe.value=ul;break;}}}
 }
 
 function poblarChecks(){
-  var og=document.getElementById('og');
-  og.innerHTML=D.operarios.map(function(op){
-    return'<label class="ochk"><input type="checkbox" value="'+op+'" onchange="this.closest(\'label\').classList.toggle(\'sel\',this.checked);cT()"><i class="ti ti-user" style="font-size:14px"></i>'+op+'</label>';
+  document.getElementById('og').innerHTML=OPERARIOS.map(function(op){
+    return '<label class="ochk"><input type="checkbox" value="'+op+'" onchange="this.closest(\'label\').classList.toggle(\'sel\',this.checked);cT()"><i class="ti ti-user" style="font-size:14px"></i>'+op+'</label>';
   }).join('');
 }
 
-function sF(d){var dt=new Date();dt.setDate(dt.getDate()+d);document.getElementById('ff').value=dt.toISOString().split('T')[0];document.getElementById('bh').classList.toggle('on',d===0);document.getElementById('ba').classList.toggle('on',d===-1);document.getElementById('bb').classList.toggle('on',d===-2);}
+function sF(d){
+  var dt=new Date(); dt.setDate(dt.getDate()+d);
+  document.getElementById('ff').value=dt.toISOString().split('T')[0];
+  document.getElementById('bh').classList.toggle('on',d===0);
+  document.getElementById('ba').classList.toggle('on',d===-1);
+  document.getElementById('bb').classList.toggle('on',d===-2);
+}
 
 function filP(){
-  var q=document.getElementById('ps').value.toLowerCase(),pd=document.getElementById('pd');
+  var q=document.getElementById('ps').value.toLowerCase();
+  var pd=document.getElementById('pd');
   if(!q){pd.style.display='none';document.getElementById('pv').value='';return;}
-  var f=D.proyectos.filter(function(p){return p.toLowerCase().includes(q);});
+  var f=PROYECTOS.filter(function(p){return p.toLowerCase().includes(q);});
   if(!f.length){pd.style.display='none';return;}
   pd.style.display='block';
-  pd.innerHTML=f.map(function(p){return'<div class="proy-item" onclick="selP(\''+p.replace(/'/g,"\\'")+'\')" >'+p+'</div>';}).join('');
+  pd.innerHTML=f.map(function(p){return'<div class="proy-item" onclick="selP(this.textContent)">'+p+'</div>';}).join('');
 }
-function selP(p){document.getElementById('ps').value=p;document.getElementById('pv').value=p;document.getElementById('pd').style.display='none';}
+function selP(p){
+  document.getElementById('ps').value=p;
+  document.getElementById('pv').value=p;
+  document.getElementById('pd').style.display='none';
+}
 document.addEventListener('click',function(e){if(!e.target.closest('.proy-wrap'))document.getElementById('pd').style.display='none';});
 
-function sM(m,el){modo=m;document.querySelectorAll('.mtab').forEach(function(b){b.classList.remove('on')});el.classList.add('on');document.getElementById('mr').style.display=m==='r'?'block':'none';document.getElementById('mi').style.display=m==='i'?'block':'none';cT();}
+function sM(m,el){
+  modo=m;
+  document.querySelectorAll('.mtab').forEach(function(b){b.classList.remove('on')});
+  el.classList.add('on');
+  document.getElementById('mr').style.display=m==='r'?'block':'none';
+  document.getElementById('mi').style.display=m==='i'?'block':'none';
+  cT();
+}
 
-function cT(){var t=0;if(modo==='r'){var hs=parseFloat(document.getElementById('hc').value)||0;t=hs*document.querySelectorAll('#og input:checked').length;}else{document.querySelectorAll('.hi').forEach(function(i){var v=parseFloat(i.value);if(!isNaN(v))t+=v;});}document.getElementById('tt').textContent=t.toFixed(1)+' hs';}
+function cT(){
+  var t=0;
+  if(modo==='r'){
+    var hs=parseFloat(document.getElementById('hc').value)||0;
+    t=hs*document.querySelectorAll('#og input:checked').length;
+  } else {
+    document.querySelectorAll('.hi').forEach(function(i){var v=parseFloat(i.value);if(!isNaN(v))t+=v;});
+  }
+  document.getElementById('tt').textContent=t.toFixed(1)+' hs';
+}
 
 function mkO(list,sel){return list.map(function(x){return'<option value="'+x+'"'+(x===sel?' selected':'')+'>'+x+'</option>';}).join('');}
 
-function aR(op,ta,hs){var id='r'+rid++;var tr=document.createElement('tr');tr.id=id;tr.innerHTML='<td><select class="os"><option value="">--</option>'+mkO(D.operarios,op)+'</select></td><td><select class="ts"><option value="">--</option>'+mkO(D.tareas,ta)+'</select></td><td><input class="hi" type="number" min="0.5" max="24" step="0.5" value="'+(hs||'')+'" placeholder="0" oninput="cT()" style="width:70px"></td><td><button class="btn d" onclick="document.getElementById(\''+id+'\').remove();cT()" style="padding:4px 8px"><i class="ti ti-x"></i></button></td>';document.getElementById('ot').appendChild(tr);cT();}
+function aR(op,ta,hs){
+  var id='r'+rid++; var tr=document.createElement('tr'); tr.id=id;
+  tr.innerHTML='<td><select class="os"><option value="">--</option>'+mkO(OPERARIOS,op)+'</select></td>'+
+    '<td><select class="ts"><option value="">--</option>'+mkO(TAREAS,ta)+'</select></td>'+
+    '<td><input class="hi" type="number" min="0.5" max="24" step="0.5" value="'+(hs||'')+'" placeholder="0" oninput="cT()" style="width:70px"></td>'+
+    '<td><button class="btn d" onclick="document.getElementById(\''+id+'\').remove();cT()" style="padding:4px 8px"><i class="ti ti-x"></i></button></td>';
+  document.getElementById('ot').appendChild(tr); cT();
+}
 
 function grd(){
   var pr=document.getElementById('pv').value||document.getElementById('ps').value.trim();
-  var ta=document.getElementById('ft').value,fe=document.getElementById('ff').value,en=document.getElementById('fe').value,ob=document.getElementById('fo').value.trim();
+  var ta=document.getElementById('ft').value;
+  var fe=document.getElementById('ff').value;
+  var en=document.getElementById('fe').value;
+  var ob=document.getElementById('fo').value.trim();
   if(!pr||!ta||!fe||!en){alert('Completa todos los datos.');return;}
   var ops=[];
-  if(modo==='r'){var hs=parseFloat(document.getElementById('hc').value)||0;if(!hs){alert('Ingresa las horas.');return;}var sels=document.querySelectorAll('#og input:checked');if(!sels.length){alert('Selecciona al menos un operario.');return;}sels.forEach(function(s){ops.push({operario:s.value,tarea:ta,horas:hs});});}
-  else{var rows=document.querySelectorAll('#ot tr'),ok=true;rows.forEach(function(tr){var op=tr.querySelector('.os').value,t=tr.querySelector('.ts').value,h=parseFloat(tr.querySelector('.hi').value);if(!op||isNaN(h)||h<=0){ok=false;return;}ops.push({operario:op,tarea:t||ta,horas:h});});if(!ops.length){alert('Agrega al menos un operario.');return;}if(!ok){alert('Revisa las horas.');return;}}
+  if(modo==='r'){
+    var hs=parseFloat(document.getElementById('hc').value)||0;
+    if(!hs){alert('Ingresa las horas.');return;}
+    var sels=document.querySelectorAll('#og input:checked');
+    if(!sels.length){alert('Selecciona al menos un operario.');return;}
+    sels.forEach(function(s){ops.push({operario:s.value,tarea:ta,horas:hs});});
+  } else {
+    var rows=document.querySelectorAll('#ot tr'),ok=true;
+    rows.forEach(function(tr){
+      var op=tr.querySelector('.os').value,t=tr.querySelector('.ts').value,h=parseFloat(tr.querySelector('.hi').value);
+      if(!op||isNaN(h)||h<=0){ok=false;return;}
+      ops.push({operario:op,tarea:t||ta,horas:h});
+    });
+    if(!ops.length){alert('Agrega al menos un operario.');return;}
+    if(!ok){alert('Revisa las horas.');return;}
+  }
   localStorage.setItem('ue',en);
-  D.trabajos.unshift({id:Date.now(),proyecto:pr,tarea:ta,fecha:fe,encargado:en,obs:ob,operarios:ops});
-  sync();lmp();toast('Guardado — '+ops.length+' operario'+(ops.length>1?'s':''));
+  trabajos.unshift({id:Date.now(),proyecto:pr,tarea:ta,fecha:fe,encargado:en,obs:ob,operarios:ops});
+  sync(); lmp();
+  toast('Guardado - '+ops.length+' operario'+(ops.length>1?'s':''));
 }
 
-function lmp(){document.getElementById('ps').value='';document.getElementById('pv').value='';document.getElementById('pd').style.display='none';document.getElementById('ft').value='';document.getElementById('fo').value='';sF(0);document.querySelectorAll('#og input').forEach(function(c){c.checked=false;c.closest('label').classList.remove('sel');});document.getElementById('hc').value='';document.getElementById('ot').innerHTML='';rid=0;aR();cT();}
+function lmp(){
+  document.getElementById('ps').value=''; document.getElementById('pv').value='';
+  document.getElementById('pd').style.display='none';
+  document.getElementById('ft').value=''; document.getElementById('fo').value='';
+  sF(0);
+  document.querySelectorAll('#og input').forEach(function(c){c.checked=false;c.closest('label').classList.remove('sel');});
+  document.getElementById('hc').value='';
+  document.getElementById('ot').innerHTML=''; rid=0; aR(); cT();
+}
 
 function toast(msg){var t=document.getElementById('tst');document.getElementById('tm').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on');},3000);}
 
-function fF(){var fp=document.getElementById('flp'),fo=document.getElementById('flo'),vp=fp.value,vo=fo.value;fp.innerHTML='<option value="">Todos los proyectos</option>'+D.proyectos.map(function(x){return'<option value="'+x+'">'+x+'</option>';}).join('');fo.innerHTML='<option value="">Todos los operarios</option>'+D.operarios.map(function(x){return'<option value="'+x+'">'+x+'</option>';}).join('');fp.value=vp;fo.value=vo;}
+function fF(){
+  document.getElementById('flp').innerHTML='<option value="">Todos los proyectos</option>'+PROYECTOS.map(function(x){return'<option value="'+x+'">'+x+'</option>';}).join('');
+  document.getElementById('flo').innerHTML='<option value="">Todos los operarios</option>'+OPERARIOS.map(function(x){return'<option value="'+x+'">'+x+'</option>';}).join('');
+}
 
-function rH(){var fP=document.getElementById('flp').value,fO=document.getElementById('flo').value;var tr=D.trabajos.filter(function(t){return(!fP||t.proyecto===fP)&&(!fO||t.operarios.find(function(o){return o.operario===fO;}));});var el=document.getElementById('hl');if(!tr.length){el.innerHTML='<div class="emp"><i class="ti ti-inbox"></i><br>Sin registros</div>';return;}el.innerHTML=tr.map(function(t){var tot=t.operarios.reduce(function(s,o){return s+o.horas;},0),p=t.fecha.split('-');return'<div class="hcrd"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-size:14px;font-weight:500">'+t.proyecto+'</div><div style="font-size:12px;color:var(--tx2)"><span class="bdg">'+t.tarea+'</span> '+p[2]+'/'+p[1]+'/'+p[0]+' por '+t.encargado+'</div>'+(t.obs?'<div style="font-size:12px;color:var(--tx2);font-style:italic">'+t.obs+'</div>':'')+'</div><div style="text-align:right"><div style="font-size:20px;font-weight:500">'+tot.toFixed(1)+'</div><div style="font-size:11px;color:var(--tx2)">hs</div><button class="btn d" style="font-size:11px;padding:3px 8px;margin-top:4px" onclick="del('+t.id+')"><i class="ti ti-trash"></i></button></div></div><div class="ol">'+t.operarios.map(function(o){return'<div class="or"><span>'+o.operario+' <span style="color:var(--tx2)">- '+o.tarea+'</span></span><span style="font-weight:500">'+o.horas+' hs</span></div>';}).join('')+'</div></div>';}).join('');}
+function rH(){
+  var fP=document.getElementById('flp').value,fO=document.getElementById('flo').value;
+  var tr=trabajos.filter(function(t){return(!fP||t.proyecto===fP)&&(!fO||t.operarios.find(function(o){return o.operario===fO;}));});
+  var el=document.getElementById('hl');
+  if(!tr.length){el.innerHTML='<div class="emp"><i class="ti ti-inbox"></i><br>Sin registros</div>';return;}
+  el.innerHTML=tr.map(function(t){
+    var tot=t.operarios.reduce(function(s,o){return s+o.horas;},0),p=t.fecha.split('-');
+    return'<div class="hcrd"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div>'+
+      '<div style="font-size:14px;font-weight:500">'+t.proyecto+'</div>'+
+      '<div style="font-size:12px;color:var(--tx2)"><span class="bdg">'+t.tarea+'</span> '+p[2]+'/'+p[1]+'/'+p[0]+' por '+t.encargado+'</div>'+
+      (t.obs?'<div style="font-size:12px;color:var(--tx2);font-style:italic">'+t.obs+'</div>':'')+
+      '</div><div style="text-align:right"><div style="font-size:20px;font-weight:500">'+tot.toFixed(1)+'</div>'+
+      '<div style="font-size:11px;color:var(--tx2)">hs</div>'+
+      '<button class="btn d" style="font-size:11px;padding:3px 8px;margin-top:4px" onclick="del('+t.id+')"><i class="ti ti-trash"></i></button></div></div>'+
+      '<div class="ol">'+t.operarios.map(function(o){return'<div class="or"><span>'+o.operario+' <span style="color:var(--tx2)">- '+o.tarea+'</span></span><span style="font-weight:500">'+o.horas+' hs</span></div>';}).join('')+'</div></div>';
+  }).join('');
+}
 
-function del(id){if(!confirm('Eliminar?'))return;D.trabajos=D.trabajos.filter(function(t){return t.id!==id;});sync();rH();}
+function del(id){if(!confirm('Eliminar?'))return;trabajos=trabajos.filter(function(t){return t.id!==id;});sync();rH();}
 
-function rR(){var tot=D.trabajos.reduce(function(s,t){return s+t.operarios.reduce(function(ss,o){return ss+o.horas;},0);},0);var mes=new Date().toISOString().slice(0,7);var hm=D.trabajos.filter(function(t){return t.fecha.startsWith(mes);}).reduce(function(s,t){return s+t.operarios.reduce(function(ss,o){return ss+o.horas;},0);},0);document.getElementById('sts').innerHTML='<div class="st"><div class="sl">Total horas</div><div class="sv">'+tot.toFixed(1)+'</div></div><div class="st"><div class="sl">Este mes</div><div class="sv">'+hm.toFixed(1)+'</div></div><div class="st"><div class="sl">Trabajos</div><div class="sv">'+D.trabajos.length+'</div></div><div class="st"><div class="sl">Proyectos</div><div class="sv">'+new Set(D.trabajos.map(function(t){return t.proyecto;})).size+'</div></div>';function bars(by,eid){var mx=Math.max.apply(null,Object.values(by).concat([1]));document.getElementById(eid).innerHTML=Object.keys(by).length?Object.entries(by).sort(function(a,b){return b[1]-a[1];}).map(function(e){return'<div class="bw"><div class="bl"><span>'+e[0]+'</span><span style="font-weight:500">'+e[1].toFixed(1)+' hs</span></div><div class="bb"><div class="bf" style="width:'+(e[1]/mx*100).toFixed(1)+'%"></div></div></div>';}).join(''):'<div class="emp">Sin datos</div>';}var byP={};D.trabajos.forEach(function(t){t.operarios.forEach(function(o){byP[t.proyecto]=(byP[t.proyecto]||0)+o.horas;});});bars(byP,'rp');var byO={};D.trabajos.filter(function(t){return t.fecha.startsWith(mes);}).forEach(function(t){t.operarios.forEach(function(o){byO[o.operario]=(byO[o.operario]||0)+o.horas;});});bars(byO,'ro');}
+function rR(){
+  var tot=trabajos.reduce(function(s,t){return s+t.operarios.reduce(function(ss,o){return ss+o.horas;},0);},0);
+  var mes=new Date().toISOString().slice(0,7);
+  var hm=trabajos.filter(function(t){return t.fecha.startsWith(mes);}).reduce(function(s,t){return s+t.operarios.reduce(function(ss,o){return ss+o.horas;},0);},0);
+  document.getElementById('sts').innerHTML='<div class="st"><div class="sl">Total horas</div><div class="sv">'+tot.toFixed(1)+'</div></div><div class="st"><div class="sl">Este mes</div><div class="sv">'+hm.toFixed(1)+'</div></div><div class="st"><div class="sl">Trabajos</div><div class="sv">'+trabajos.length+'</div></div><div class="st"><div class="sl">Proyectos</div><div class="sv">'+new Set(trabajos.map(function(t){return t.proyecto;})).size+'</div></div>';
+  function bars(by,eid){var mx=Math.max.apply(null,Object.values(by).concat([1]));document.getElementById(eid).innerHTML=Object.keys(by).length?Object.entries(by).sort(function(a,b){return b[1]-a[1];}).map(function(e){return'<div class="bw"><div class="bl"><span>'+e[0]+'</span><span style="font-weight:500">'+e[1].toFixed(1)+' hs</span></div><div class="bb"><div class="bf" style="width:'+(e[1]/mx*100).toFixed(1)+'%"></div></div></div>';}).join(''):'<div class="emp">Sin datos</div>';}
+  var byP={};trabajos.forEach(function(t){t.operarios.forEach(function(o){byP[t.proyecto]=(byP[t.proyecto]||0)+o.horas;});});bars(byP,'rp');
+  var byO={};trabajos.filter(function(t){return t.fecha.startsWith(mes);}).forEach(function(t){t.operarios.forEach(function(o){byO[o.operario]=(byO[o.operario]||0)+o.horas;});});bars(byO,'ro');
+}
 
-function rA(){function rl(id,key){document.getElementById(id).innerHTML=D[key].length?D[key].map(function(x,i){return'<div class="ai"><span>'+x+'</span><button class="btn d" style="padding:3px 8px;font-size:11px" onclick="rI(\''+key+'\','+i+')"><i class="ti ti-x"></i></button></div>';}).join(''):'<div style="color:var(--tx2);font-size:13px">Sin elementos</div>';}rl('aop','operarios');rl('apr','proyectos');rl('ata','tareas');}
-function aI(key,iid){var v=document.getElementById(iid).value.trim();if(!v)return;D[key].push(v);sync();poblar();poblarChecks();rA();document.getElementById(iid).value='';}
-function rI(key,i){D[key].splice(i,1);sync();poblar();poblarChecks();rA();}
-function eCSV(){var rows=["Fecha,Proyecto,Tarea,Encargado,Operario,Horas"];D.trabajos.forEach(function(t){t.operarios.forEach(function(o){rows.push(t.fecha+',"'+t.proyecto+'","'+t.tarea+'","'+t.encargado+'","'+o.operario+'",'+o.horas);});});var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.join('\\n')],{type:'text/csv'}));a.download='horas.csv';a.click();}
+function rA(){
+  function rl(id,arr,key){document.getElementById(id).innerHTML=arr.length?arr.map(function(x,i){return'<div class="ai"><span>'+x+'</span><button class="btn d" style="padding:3px 8px;font-size:11px" onclick="rmI(\''+key+'\','+i+')"><i class="ti ti-x"></i></button></div>';}).join(''):'<div style="color:var(--tx2);font-size:13px">Sin elementos</div>';}
+  rl('aop',OPERARIOS,'op'); rl('apr',PROYECTOS,'pr'); rl('ata',TAREAS,'ta');
+}
+function aI(key,iid){
+  var v=document.getElementById(iid).value.trim(); if(!v)return;
+  if(key==='operarios') OPERARIOS.push(v);
+  else if(key==='proyectos') PROYECTOS.push(v);
+  else TAREAS.push(v);
+  poblar(); poblarChecks(); rA(); document.getElementById(iid).value='';
+}
+function rmI(key,i){
+  if(key==='op') OPERARIOS.splice(i,1);
+  else if(key==='pr') PROYECTOS.splice(i,1);
+  else TAREAS.splice(i,1);
+  poblar(); poblarChecks(); rA();
+}
+function eCSV(){
+  var rows=["Fecha,Proyecto,Tarea,Encargado,Operario,Horas"];
+  trabajos.forEach(function(t){t.operarios.forEach(function(o){rows.push(t.fecha+',"'+t.proyecto+'","'+t.tarea+'","'+t.encargado+'","'+o.operario+'",'+o.horas);});});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([rows.join('\\n')],{type:'text/csv'})); a.download='horas.csv'; a.click();
+}
 
-window.onload=function(){poblar();poblarChecks();sF(0);aR();};
-</script></body></html>`;
+poblar();
+poblarChecks();
+sF(0);
+aR();
+cargarTrabajosDelServidor();
+</script>
+</body>
+</html>`;
+
+const server = http.createServer(async(req,res)=>{
+  res.setHeader('Access-Control-Allow-Origin','*');
+  res.setHeader('Access-Control-Allow-Methods','GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers','Content-Type');
+  if(req.method==='OPTIONS'){res.writeHead(204);res.end();return;}
+  if(req.method==='GET'&&req.url==='/'){
+    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});
+    res.end(HTML);return;
+  }
+  if(req.method==='GET'&&req.url==='/data'){
+    const d=await leer();
+    res.writeHead(200,{'Content-Type':'application/json'});
+    res.end(JSON.stringify(d));return;
+  }
+  if(req.method==='POST'&&req.url==='/data'){
+    let b='';req.on('data',c=>b+=c);req.on('end',async()=>{
+      try{await guardar(JSON.parse(b));res.writeHead(200);res.end('ok');}catch(e){res.writeHead(400);res.end('err');}
+    });return;
+  }
+  res.writeHead(404);res.end('404');
+});
 
 conectar().then(function(){server.listen(PORT,function(){console.log('Servidor Puerto '+PORT);});});
