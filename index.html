@@ -74,6 +74,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 .tst.on{display:flex}
 .emp{text-align:center;padding:2rem;color:var(--tx2);font-size:14px}
 @media(max-width:420px){.fg{grid-template-columns:1fr}.ag{grid-template-columns:1fr}}
+
+@media(max-width:600px){
+  .tab{padding:9px 4px;font-size:11px;min-width:55px}
+  .crd{padding:12px 10px}
+  .fg{grid-template-columns:1fr}
+  .ogrid{grid-template-columns:repeat(auto-fill,minmax(135px,1fr))}
+  .dbtns .dbtn{font-size:11px;padding:5px 2px}
+}
+.hsbadge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;margin-right:4px}
+.hsn{background:#e6f4e6;color:#1e5c1e}
+.hse{background:#fef3db;color:#7a4f00}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip{padding:5px 10px;border-radius:20px;font-size:12px;cursor:pointer;border:.5px solid var(--bd);background:var(--bg2);color:var(--tx2)}
+.chip:hover{background:var(--ibg);border-color:var(--ic);color:var(--ic)}
 </style>
 </head>
 <body><div id="ls" style="position:fixed;inset:0;background:#1a1a18;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px"><div style="text-align:center;color:#fff"><div style="font-size:28px;margin-bottom:6px">&#128336;</div><div style="font-size:18px;font-weight:700">Horas por Proyecto</div><div style="font-size:12px;opacity:.5">Fischer Montajes</div></div><div style="background:#fff;border-radius:12px;padding:24px 28px;width:290px"><div style="font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:10px">Clave de acceso</div><input id="li" type="password" placeholder="••••" style="width:100%;height:42px;text-align:center;font-size:20px;letter-spacing:5px;border:1.5px solid #ddd;border-radius:8px;outline:none;color:#1a1a18;background:#f5f4f0" /><div id="le" style="color:#a32d2d;font-size:12px;margin-top:6px;min-height:14px;text-align:center"></div><button id="lb" style="width:100%;height:40px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">Ingresar</button></div></div>
@@ -88,7 +102,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
   <button class="tab on" onclick="goTab('c',this)"><i class="ti ti-clock"></i> Cargar</button>
   <button class="tab" onclick="goTab('h',this)"><i class="ti ti-list"></i> Historial</button>
   <button class="tab" onclick="goTab('r',this)"><i class="ti ti-chart-bar"></i> Resumen</button>
-  <button class="tab" onclick="goTab('a',this)"><i class="ti ti-settings"></i> Admin</button>
+  <button class="tab" onclick="goTab('s',this)"><i class="ti ti-calendar-week"></i> Semana</button>
+  <button class="tab" onclick="goTab('op',this)"><i class="ti ti-user"></i> Operario</button>
+  <button class="tab" id="tab-admin" onclick="goTab('a',this)"><i class="ti ti-settings"></i> Admin</button>
 </div>
 <div id="tst" class="tst"><i class="ti ti-check"></i><span id="tm"></span></div>
 
@@ -99,7 +115,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
       <div class="fld">
         <label>Proyecto</label>
         <div class="proy-wrap">
-          <input type="text" id="ps" placeholder="Buscar proyecto..." oninput="filP()" autocomplete="off"
+          <input type="text" id="ps" placeholder="Buscar proyecto..." oninput="filP()" onfocus="filP()" autocomplete="off"
             style="font-size:14px;padding:9px 11px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);width:100%">
           <div id="pd" class="pdrop"></div>
         </div>
@@ -126,6 +142,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
     <div class="fld">
       <label>Observaciones</label>
       <input type="text" id="fo" placeholder="Opcional...">
+      <div class="chips"><div class="chip" onclick="addObs('Lluvia')">&#127783; Lluvia</div><div class="chip" onclick="addObs('Materiales faltantes')">&#128230; Mat. faltantes</div><div class="chip" onclick="addObs('Trabajo en altura')">&#11014; Altura</div><div class="chip" onclick="addObs('Espacio confinado')">&#9888; Esp. confinado</div></div>
     </div>
   </div>
   <div class="crd">
@@ -158,6 +175,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
   </div>
 </div>
 
+
+<div id="pnl-s" class="pnl">
+  <div id="sem-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+  <div id="sem-content"></div>
+</div>
+<div id="pnl-op" class="pnl">
+  <div class="crd">
+    <div class="ct"><i class="ti ti-user"></i> Ver por operario</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <select id="op-sel" onchange="rOp()" style="flex:1;font-size:14px;padding:9px 11px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);-webkit-appearance:none">
+        <option value="">-- seleccionar operario --</option>
+      </select>
+      <select id="op-per" onchange="rOp()" style="font-size:13px;padding:9px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);-webkit-appearance:none">
+        <option value="mes">Este mes</option>
+        <option value="semana">Esta semana</option>
+        <option value="todo">Todo</option>
+      </select>
+    </div>
+    <div id="op-content"><div class="emp">Selecciona un operario</div></div>
+  </div>
+</div>
 <div id="pnl-h" class="pnl">
   <div class="fb">
     <select id="flp" onchange="rH()"><option value="">Todos los proyectos</option></select>
@@ -233,6 +271,8 @@ function goTab(t, el) {
   if(t === "h") { fillF(); rH(); }
   if(t === "r") rR();
   if(t === "a") rA();
+  if(t === "s") rSemana();
+  if(t === "op") { fillOpSel(); rOp(); }
 }
 
 function poblar() {
@@ -282,19 +322,30 @@ function filP() {
   var q = document.getElementById("ps").value.toLowerCase();
   var pd = document.getElementById("pd");
   document.getElementById("pv").value = "";
-  if(!q){ pd.style.display = "none"; return; }
-  var f = PR.filter(function(p){ return p.toLowerCase().indexOf(q) >= 0; });
-  if(!f.length){ pd.style.display = "none"; return; }
-  pd.innerHTML = "";
-  pd.style.display = "block";
-  f.forEach(function(p) {
-    var div = document.createElement("div");
-    div.className = "pitem";
-    div.textContent = p;
-    div.onclick = function() {
-      document.getElementById("ps").value = p;
-      document.getElementById("pv").value = p;
-      pd.style.display = "none";
+  var lista;
+  if(!q) {
+    lista = PR.filter(isFav);
+    if(!lista.length){ pd.style.display="none"; return; }
+  } else {
+    lista = PR.filter(function(p){ return p.toLowerCase().indexOf(q)>=0; });
+    lista.sort(function(a,b){ return (isFav(b)?1:0)-(isFav(a)?1:0); });
+    if(!lista.length){ pd.style.display="none"; return; }
+  }
+  pd.innerHTML=""; pd.style.display="block";
+  lista.forEach(function(p){
+    var div=document.createElement("div");
+    div.className="pitem"; div.style.display="flex"; div.style.alignItems="center";
+    var star=document.createElement("span");
+    star.textContent=isFav(p)?"⭐":"☆";
+    star.style="cursor:pointer;margin-right:6px;font-size:14px;flex-shrink:0";
+    star.onclick=function(e){ e.stopPropagation(); toggleFav(p); filP(); };
+    var txt=document.createElement("span"); txt.textContent=p; txt.style.flex="1";
+    div.appendChild(star); div.appendChild(txt);
+    div.onclick=function(e){
+      if(e.target===star) return;
+      document.getElementById("ps").value=p;
+      document.getElementById("pv").value=p;
+      pd.style.display="none";
     };
     pd.appendChild(div);
   });
@@ -535,10 +586,16 @@ cargarRemoto();
 document.getElementById("lb").addEventListener("click", function() {
   var v = document.getElementById("li").value;
   if(v === "2675" || v === "9999") {
+    IS_ADM = (v === "9999");
+    sessionStorage.setItem("auth","ok");
+    sessionStorage.setItem("adm", IS_ADM?"1":"0");
     document.getElementById("ls").style.display = "none";
     document.getElementById("app").style.display = "block";
-    sessionStorage.setItem("auth","ok");
-    sessionStorage.setItem("adm", v==="9999"?"1":"0");
+    if(!IS_ADM) {
+      var ta = document.getElementById("tab-admin");
+      if(ta) ta.style.display = "none";
+    }
+    fillOpSel();
   } else {
     document.getElementById("le").textContent = "Clave incorrecta";
     document.getElementById("li").value = "";
@@ -549,9 +606,137 @@ document.getElementById("li").addEventListener("keydown", function(e) {
   if(e.key === "Enter") document.getElementById("lb").click();
 });
 if(sessionStorage.getItem("auth") === "ok") {
+  IS_ADM = sessionStorage.getItem("adm") === "1";
   document.getElementById("ls").style.display = "none";
   document.getElementById("app").style.display = "block";
+  if(!IS_ADM) {
+    var ta = document.getElementById("tab-admin");
+    if(ta) ta.style.display = "none";
+  }
 }
+
+// Favoritos
+var FAVS = JSON.parse(localStorage.getItem("fvs") || "[]");
+function isFav(p){ return FAVS.indexOf(p) >= 0; }
+function toggleFav(p){
+  var i = FAVS.indexOf(p);
+  if(i >= 0) FAVS.splice(i,1); else FAVS.push(p);
+  localStorage.setItem("fvs", JSON.stringify(FAVS));
+}
+
+// Observaciones rapidas
+function addObs(t){
+  var f = document.getElementById("fo");
+  f.value = f.value ? f.value + ", " + t : t;
+}
+
+// Horas extras: L-J 9.5hs, V 8hs, S-D todo extra
+function calcE(fecha, hs){
+  if(!fecha) return {n:hs, e:0};
+  var dow = new Date(fecha + "T12:00:00").getDay();
+  var norm = (dow===0||dow===6) ? 0 : (dow===5 ? 8 : 9.5);
+  return {n: Math.min(hs, norm), e: Math.max(0, hs - norm)};
+}
+
+// Clave admin
+var IS_ADM = sessionStorage.getItem("adm") === "1";
+
+// Semana
+var SEM_IDX = 0;
+function getSems(){
+  var r=[], h=new Date();
+  for(var i=0;i<5;i++){
+    var d=new Date(h); d.setDate(d.getDate()-i*7);
+    var l=new Date(d); l.setDate(d.getDate()-((d.getDay()+6)%7));
+    var v=new Date(l); v.setDate(l.getDate()+4);
+    r.push({
+      desde:l.toISOString().split("T")[0],
+      hasta:v.toISOString().split("T")[0],
+      label:i===0?"Esta semana":i===1?"Sem. pasada":l.getDate()+"/"+(l.getMonth()+1)
+    });
+  }
+  return r;
+}
+
+function rSemana(){
+  var sems=getSems();
+  var tabs=document.getElementById("sem-tabs");
+  tabs.innerHTML="";
+  sems.forEach(function(s,i){
+    var b=document.createElement("div");
+    b.textContent=s.label;
+    b.style="padding:6px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--bd);background:"+(i===SEM_IDX?"var(--tx)":"var(--bg2)")+";color:"+(i===SEM_IDX?"var(--bg)":"var(--tx2)");
+    b.onclick=(function(idx){ return function(){ SEM_IDX=idx; rSemana(); }; })(i);
+    tabs.appendChild(b);
+  });
+  var sem=sems[SEM_IDX];
+  var tr=trabajos.filter(function(t){ return t.fecha>=sem.desde&&t.fecha<=sem.hasta; });
+  var byOp={}, totE=0;
+  tr.forEach(function(t){
+    t.operarios.forEach(function(o){
+      byOp[o.operario]=(byOp[o.operario]||0)+o.horas;
+      var e=calcE(t.fecha,o.horas); totE+=e.e;
+    });
+  });
+  var tot=Object.values(byOp).reduce(function(s,v){ return s+v; },0);
+  var cont=document.getElementById("sem-content");
+  if(!tr.length){ cont.innerHTML="<div class='emp'><i class='ti ti-calendar'></i><br>Sin registros</div>"; return; }
+  var h="<div class='crd'><div class='ct'>Total: <strong>"+tot.toFixed(1)+" hs</strong>";
+  if(totE>0) h+=" &nbsp;<span class='hsbadge hse'>Extra: "+totE.toFixed(1)+"hs</span>";
+  h+="</div>";
+  Object.entries(byOp).sort(function(a,b){ return b[1]-a[1]; }).forEach(function(e){
+    var eOp=0;
+    tr.forEach(function(t){ t.operarios.forEach(function(o){ if(o.operario===e[0]){ eOp+=calcE(t.fecha,o.horas).e; } }); });
+    h+="<div style='display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid var(--bd);font-size:13px'><span>"+e[0]+"</span><span style='font-weight:500'>"+e[1].toFixed(1)+" hs"+(eOp>0?" <span class='hsbadge hse'>+"+eOp.toFixed(1)+"</span>":"")+"</span></div>";
+  });
+  h+="</div><div class='crd'><div class='ct'>Por proyecto</div>";
+  tr.forEach(function(t){
+    var tot2=t.operarios.reduce(function(s,o){ return s+o.horas; },0);
+    var p=t.fecha.split("-");
+    h+="<div style='padding:8px 0;border-bottom:.5px solid var(--bd)'><div style='font-size:13px;font-weight:500'>"+t.proyecto+"</div><div style='font-size:12px;color:var(--tx2)'>"+p[2]+"/"+p[1]+" - "+t.tarea+" - "+tot2.toFixed(1)+" hs</div><div style='font-size:12px;color:var(--tx2)'>"+t.operarios.map(function(o){ return o.operario+" ("+o.horas+"hs)"; }).join(", ")+"</div></div>";
+  });
+  h+="</div>";
+  cont.innerHTML=h;
+}
+
+function fillOpSel(){
+  var s=document.getElementById("op-sel"), v=s.value;
+  s.innerHTML="<option value=''>-- seleccionar operario --</option>";
+  OP.forEach(function(x){ s.innerHTML+="<option value='"+x+"'>"+x+"</option>"; });
+  s.value=v;
+}
+
+function rOp(){
+  var sel=document.getElementById("op-sel").value;
+  var per=document.getElementById("op-per").value;
+  var cont=document.getElementById("op-content");
+  if(!sel){ cont.innerHTML="<div class='emp'>Selecciona un operario</div>"; return; }
+  var hoy=new Date().toISOString().split("T")[0];
+  var mes=hoy.slice(0,7);
+  var l=new Date(); l.setDate(l.getDate()-((l.getDay()+6)%7));
+  var lunStr=l.toISOString().split("T")[0];
+  var tr=trabajos.filter(function(t){
+    if(!t.operarios.find(function(o){ return o.operario===sel; })) return false;
+    if(per==="mes") return t.fecha.startsWith(mes);
+    if(per==="semana") return t.fecha>=lunStr;
+    return true;
+  });
+  if(!tr.length){ cont.innerHTML="<div class='emp'>Sin registros</div>"; return; }
+  var totH=0, totE=0;
+  tr.forEach(function(t){ t.operarios.forEach(function(o){ if(o.operario===sel){ totH+=o.horas; totE+=calcE(t.fecha,o.horas).e; } }); });
+  var h="<div style='display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap'>";
+  h+="<div class='st' style='flex:1'><div class='sl'>Total</div><div class='sv'>"+totH.toFixed(1)+"</div></div>";
+  h+="<div class='st' style='flex:1'><div class='sl'>Extras</div><div class='sv' style='color:#7a4f00'>"+totE.toFixed(1)+"</div></div>";
+  h+="<div class='st' style='flex:1'><div class='sl'>Trabajos</div><div class='sv'>"+tr.length+"</div></div></div>";
+  tr.forEach(function(t){
+    var op=t.operarios.find(function(o){ return o.operario===sel; }); if(!op) return;
+    var e=calcE(t.fecha,op.horas), p=t.fecha.split("-");
+    h+="<div class='hcrd'><div style='display:flex;justify-content:space-between'><div><div style='font-size:13px;font-weight:500'>"+t.proyecto+"</div><div style='font-size:12px;color:var(--tx2)'>"+p[2]+"/"+p[1]+"/"+p[0]+" - "+op.tarea+"</div></div><div style='text-align:right'><div style='font-size:18px;font-weight:500'>"+op.horas+" hs</div>"+(e.e>0?"<span class='hsbadge hse'>+"+e.e.toFixed(1)+" extra</span>":"")+"</div></div></div>";
+  });
+  cont.innerHTML=h;
+}
+
+fillOpSel();
 </script>
 </div></body>
 </html>
