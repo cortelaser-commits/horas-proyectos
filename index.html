@@ -527,16 +527,18 @@ function rmI(key,i) {
 
 function exportar(lista, nombre) {
   var S = ';';
-  var filas = ['Fecha'+S+'Proyecto'+S+'Tarea'+S+'Encargado'+S+'Operario'+S+'Horas'+S+'Observaciones'];
+  var filas = ['Fecha'+S+'Proyecto'+S+'Tarea'+S+'Encargado'+S+'Operario'+S+'Horas'+S+'Horas Extra'+S+'Observaciones'];
   lista.forEach(function(t){
     t.operarios.forEach(function(o){
+      var e = calcE(t.fecha, o.horas);
       var hs = String(o.horas).replace('.', ',');
+      var ex = e.e.toFixed(1).replace('.', ',');
       var obs = (t.obs || '').replace(/;/g,' ');
-      filas.push(t.fecha+S+t.proyecto+S+t.tarea+S+t.encargado+S+o.operario+S+hs+S+obs);
+      filas.push(t.fecha+S+t.proyecto+S+t.tarea+S+t.encargado+S+o.operario+S+hs+S+ex+S+obs);
     });
   });
   var a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['﻿'+filas.join('\n')], {type:'text/csv;charset=utf-8'}));
+  a.href = URL.createObjectURL(new Blob([filas.join('\n')], {type:'text/csv;charset=utf-8'}));
   a.download = nombre;
   a.click();
 }
