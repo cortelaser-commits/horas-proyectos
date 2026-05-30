@@ -312,7 +312,11 @@ function poblarChecks() {
 function sF(d) {
   var dt = new Date();
   dt.setDate(dt.getDate() + d);
-  document.getElementById("ff").value = dt.toISOString().split("T")[0];
+  // Usar fecha local (no UTC) para evitar desfase de zona horaria
+  var yyyy = dt.getFullYear();
+  var mm = String(dt.getMonth()+1).padStart(2,'0');
+  var dd = String(dt.getDate()).padStart(2,'0');
+  document.getElementById("ff").value = yyyy+"-"+mm+"-"+dd;
   document.getElementById("bh").classList.toggle("on", d === 0);
   document.getElementById("ba").classList.toggle("on", d === -1);
   document.getElementById("bb").classList.toggle("on", d === -2);
@@ -486,11 +490,11 @@ function rH() {
     var div=document.createElement("div"); div.className="hcrd";
     div.innerHTML=
       "<div style='display:flex;justify-content:space-between;margin-bottom:8px'>" +
+          (function(){ var tn=0,te=0; t.operarios.forEach(function(o){ var e=calcE(t.fecha,o.horas); tn+=e.n; te+=e.e; }); return te>0?"<div style='margin-top:4px'><span class='hsbadge hsn'>Normal: "+tn.toFixed(1)+" hs</span> <span class='hsbadge hse'>Extra: "+te.toFixed(1)+" hs</span></div>":""; })() +
         "<div>" +
           "<div style='font-size:14px;font-weight:500'>" + t.proyecto + "</div>" +
           "<div style='font-size:12px;color:var(--tx2)'><span class='bdg'>" + t.tarea + "</span> " + p[2]+"/"+p[1]+"/"+p[0] + " por " + t.encargado + "</div>" +
           (t.obs?"<div style='font-size:12px;color:var(--tx2);font-style:italic'>"+t.obs+"</div>":"") +
-          (function(){ var tn=0,te=0; t.operarios.forEach(function(o){ var e=calcE(t.fecha,o.horas); tn+=e.n; te+=e.e; }); return te>0?"<div style='margin-top:4px'><span class='hsbadge hsn'>Normal: "+tn.toFixed(1)+" hs</span> <span class='hsbadge hse'>Extra: "+te.toFixed(1)+" hs</span></div>":""; })() +
         "</div>" +
         "<div style='text-align:right'>" +
           "<div style='font-size:20px;font-weight:500'>" + tot.toFixed(1) + "</div>" +
