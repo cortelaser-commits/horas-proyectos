@@ -102,6 +102,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 .dia-fecha{font-size:12px;color:var(--tx2)}
 .mbtn{height:38px;padding:0 18px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:.5px solid var(--bd);background:var(--bg);color:var(--tx);display:inline-flex;align-items:center;gap:6px}
 .mbtn.p{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+
+.periodo-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.ptab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--bd);background:var(--bg2);color:var(--tx2)}
+.ptab.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.rango-custom{display:none;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;padding:10px;background:var(--bg2);border-radius:var(--r)}
+.rango-custom.show{display:flex}
+.rango-custom label{font-size:12px;color:var(--tx2)}
+.rango-custom input{font-size:13px;padding:6px 8px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx)}
 </style>
 </head>
 <body><div id="ls" style="position:fixed;inset:0;background:#1a1a18;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px"><div style="text-align:center;color:#fff"><div style="font-size:28px;margin-bottom:6px">&#128336;</div><div style="font-size:18px;font-weight:700">Horas por Proyecto</div><div style="font-size:12px;opacity:.5">Fischer Montajes</div></div><div style="background:#fff;border-radius:12px;padding:24px 28px;width:290px"><div style="font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:10px">Clave de acceso</div><input id="li" type="password" placeholder="••••" style="width:100%;height:42px;text-align:center;font-size:20px;letter-spacing:5px;border:1.5px solid #ddd;border-radius:8px;outline:none;color:#1a1a18;background:#f5f4f0" /><div id="le" style="color:#a32d2d;font-size:12px;margin-top:6px;min-height:14px;text-align:center"></div><button id="lb" style="width:100%;height:40px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">Ingresar</button></div></div>
@@ -213,7 +221,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 </div>
 <div id="pnl-h" class="pnl">
   <div class="fb">
-    <select id="flp" onchange="rH()"><option value="">Todos los proyectos</option></select>
+    <input type="text" id="flp-txt" placeholder="Buscar proyecto..." oninput="rH()" style="font-size:13px;padding:7px 10px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);flex:1;min-width:140px">
     <select id="flo" onchange="rH()"><option value="">Todos los operarios</option></select>
   </div>
   <button class="btn" style="margin-bottom:10px;width:100%;justify-content:center" onclick="eCSV()">
@@ -223,9 +231,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 </div>
 
 <div id="pnl-r" class="pnl">
+  <div class="periodo-tabs">
+    <div class="ptab on" onclick="setPeriodo('mes',this)">Este mes</div>
+    <div class="ptab" onclick="setPeriodo('semana',this)">Esta semana</div>
+    <div class="ptab" onclick="setPeriodo('3m',this)">3 meses</div>
+    <div class="ptab" onclick="setPeriodo('anio',this)">Este año</div>
+    <div class="ptab" onclick="setPeriodo('todo',this)">Todo</div>
+    <div class="ptab" onclick="setPeriodo('custom',this)">📅 Personalizado</div>
+  </div>
+  <div class="rango-custom" id="rango-custom">
+    <label>Desde:</label>
+    <input type="date" id="r-desde" onchange="rR()">
+    <label>Hasta:</label>
+    <input type="date" id="r-hasta" onchange="rR()">
+  </div>
   <div class="sts" id="sts"></div>
   <div class="crd"><div class="ct">Por proyecto</div><div id="rp"></div></div>
-  <div class="crd"><div class="ct">Por operario este mes</div><div id="ro"></div></div>
+  <div class="crd"><div class="ct" id="ro-title">Por operario</div><div id="ro"></div></div>
 </div>
 
 <div id="pnl-a" class="pnl">
@@ -492,9 +514,10 @@ function fillF() {
 }
 
 function rH() {
-  var fP=document.getElementById("flp").value, fO=document.getElementById("flo").value;
+  var fP=(document.getElementById("flp-txt")||{value:""}).value.toLowerCase().trim();
+  var fO=document.getElementById("flo").value;
   var tr=trabajos.filter(function(t){
-    return (!fP||t.proyecto===fP) && (!fO||t.operarios.find(function(o){ return o.operario===fO; }));
+    return (!fP||t.proyecto.toLowerCase().indexOf(fP)>=0) && (!fO||t.operarios.find(function(o){ return o.operario===fO; }));
   });
   var el=document.getElementById("hl");
   if(!tr.length){ el.innerHTML="<div class='emp'><i class='ti ti-inbox'></i><br>Sin registros</div>"; return; }
@@ -534,15 +557,63 @@ function del(id) {
   sync(); rH();
 }
 
+var PERIODO = "mes";
+
+function setPeriodo(p, el) {
+  PERIODO = p;
+  document.querySelectorAll(".ptab").forEach(function(b){ b.classList.remove("on"); });
+  el.classList.add("on");
+  var rc = document.getElementById("rango-custom");
+  if(p === "custom") {
+    rc.classList.add("show");
+    // Poner fechas por defecto: primer dia del mes hasta hoy
+    var hoy = new Date();
+    var yyyy = hoy.getFullYear(), mm = String(hoy.getMonth()+1).padStart(2,"0");
+    if(!document.getElementById("r-desde").value) document.getElementById("r-desde").value = yyyy+"-"+mm+"-01";
+    if(!document.getElementById("r-hasta").value) document.getElementById("r-hasta").value = yyyy+"-"+mm+"-"+String(hoy.getDate()).padStart(2,"0");
+  } else {
+    rc.classList.remove("show");
+  }
+  rR();
+}
+
+function getFiltroFechas() {
+  var hoy = new Date();
+  var yyyy = hoy.getFullYear();
+  var mm = String(hoy.getMonth()+1).padStart(2,"0");
+  var dd = String(hoy.getDate()).padStart(2,"0");
+  var hoyStr = yyyy+"-"+mm+"-"+dd;
+  if(PERIODO === "mes") return {desde: yyyy+"-"+mm+"-01", hasta: hoyStr, label: "Este mes"};
+  if(PERIODO === "semana") {
+    var l = new Date(hoy); l.setDate(hoy.getDate()-((hoy.getDay()+6)%7));
+    var ls = l.getFullYear()+"-"+String(l.getMonth()+1).padStart(2,"0")+"-"+String(l.getDate()).padStart(2,"0");
+    return {desde: ls, hasta: hoyStr, label: "Esta semana"};
+  }
+  if(PERIODO === "3m") {
+    var d3 = new Date(hoy); d3.setMonth(d3.getMonth()-3);
+    var d3s = d3.getFullYear()+"-"+String(d3.getMonth()+1).padStart(2,"0")+"-"+String(d3.getDate()).padStart(2,"0");
+    return {desde: d3s, hasta: hoyStr, label: "Últimos 3 meses"};
+  }
+  if(PERIODO === "anio") return {desde: yyyy+"-01-01", hasta: hoyStr, label: "Este año"};
+  if(PERIODO === "custom") {
+    var desde = document.getElementById("r-desde").value;
+    var hasta = document.getElementById("r-hasta").value;
+    return {desde: desde||"2000-01-01", hasta: hasta||hoyStr, label: "Personalizado"};
+  }
+  return {desde: "2000-01-01", hasta: hoyStr, label: "Todo"};
+}
+
 function rR() {
-  var tot=trabajos.reduce(function(s,t){ return s+t.operarios.reduce(function(ss,o){ return ss+o.horas; },0); },0);
-  var mes=new Date().toISOString().slice(0,7);
-  var hm=trabajos.filter(function(t){ return t.fecha.startsWith(mes); }).reduce(function(s,t){ return s+t.operarios.reduce(function(ss,o){ return ss+o.horas; },0); },0);
+  var f = getFiltroFechas();
+  var trFiltrado = trabajos.filter(function(t){ return t.fecha>=f.desde && t.fecha<=f.hasta; });
+  var tot = trFiltrado.reduce(function(s,t){ return s+t.operarios.reduce(function(ss,o){ return ss+o.horas; },0); },0);
+  var totTodo = trabajos.reduce(function(s,t){ return s+t.operarios.reduce(function(ss,o){ return ss+o.horas; },0); },0);
+  var totExtra = trFiltrado.reduce(function(s,t){ return s+t.operarios.reduce(function(ss,o){ return s+calcE(t.fecha,o.horas).e; },0); },0);
   document.getElementById("sts").innerHTML=
-    "<div class='st'><div class='sl'>Total horas</div><div class='sv'>"+tot.toFixed(1)+"</div></div>"+
-    "<div class='st'><div class='sl'>Este mes</div><div class='sv'>"+hm.toFixed(1)+"</div></div>"+
-    "<div class='st'><div class='sl'>Trabajos</div><div class='sv'>"+trabajos.length+"</div></div>"+
-    "<div class='st'><div class='sl'>Proyectos</div><div class='sv'>"+new Set(trabajos.map(function(t){ return t.proyecto; })).size+"</div></div>";
+    "<div class='st'><div class='sl'>"+f.label+"</div><div class='sv'>"+tot.toFixed(1)+"</div></div>"+
+    "<div class='st'><div class='sl'>Horas extras</div><div class='sv' style='color:#7a4f00'>"+totExtra.toFixed(1)+"</div></div>"+
+    "<div class='st'><div class='sl'>Trabajos</div><div class='sv'>"+trFiltrado.length+"</div></div>"+
+    "<div class='st'><div class='sl'>Total histórico</div><div class='sv'>"+totTodo.toFixed(1)+"</div></div>";
   function bars(by,eid){
     var mx=Math.max.apply(null,Object.values(by).concat([1]));
     var el=document.getElementById(eid); el.innerHTML="";
@@ -551,8 +622,9 @@ function rR() {
       el.innerHTML+="<div class='bw'><div class='bl'><span>"+e[0]+"</span><span style='font-weight:500'>"+e[1].toFixed(1)+" hs</span></div><div class='bb'><div class='bf' style='width:"+(e[1]/mx*100).toFixed(1)+"%'></div></div></div>";
     });
   }
-  var byP={}; trabajos.forEach(function(t){ t.operarios.forEach(function(o){ byP[t.proyecto]=(byP[t.proyecto]||0)+o.horas; }); }); bars(byP,"rp");
-  var byO={}; trabajos.filter(function(t){ return t.fecha.startsWith(mes); }).forEach(function(t){ t.operarios.forEach(function(o){ byO[o.operario]=(byO[o.operario]||0)+o.horas; }); }); bars(byO,"ro");
+  var byP={}; trFiltrado.forEach(function(t){ t.operarios.forEach(function(o){ byP[t.proyecto]=(byP[t.proyecto]||0)+o.horas; }); }); bars(byP,"rp");
+  var byO={}; trFiltrado.forEach(function(t){ t.operarios.forEach(function(o){ byO[o.operario]=(byO[o.operario]||0)+o.horas; }); }); bars(byO,"ro");
+  document.getElementById("ro-title").textContent = "Por operario — "+f.label;
 }
 
 function rA() {
