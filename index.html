@@ -286,14 +286,6 @@ function cargarRemoto() {
 }
 
 // ---- LOGIN ----
-// Mostrar login solo si no hay sesion activa
-(function(){
-  var ls = document.getElementById('ls');
-  if(sessionStorage.getItem('auth') !== 'ok') {
-    ls.style.display = 'flex';
-  }
-})();
-
 document.getElementById('lb').onclick = function() {
   var v = document.getElementById('li').value;
   if(v === '2675' || v === '9999') {
@@ -825,6 +817,10 @@ poblarChecks();
 sF(0);
 aR();
 cargarRemoto();
+// Mostrar login si no hay sesion
+if(sessionStorage.getItem('auth') !== 'ok') {
+  document.getElementById('ls').style.display = 'flex';
+}
 </script>
 </div></div></body>
 </html>
