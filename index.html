@@ -309,7 +309,8 @@ document.getElementById('li').onkeydown = function(e) {
 };
 if(sessionStorage.getItem('auth') === 'ok') {
   IS_ADM = sessionStorage.getItem('adm') === '1';
-  document.getElementById('ls').style.display = 'none';
+  var lsel = document.getElementById('ls');
+  if(lsel) lsel.parentNode.removeChild(lsel);
   document.getElementById('app').style.display = 'block';
   if(!IS_ADM) {
     var tad = document.getElementById('tab-adm');
