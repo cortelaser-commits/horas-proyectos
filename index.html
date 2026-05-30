@@ -88,6 +88,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .chip{padding:5px 10px;border-radius:20px;font-size:12px;cursor:pointer;border:.5px solid var(--bd);background:var(--bg2);color:var(--tx2)}
 .chip:hover{background:var(--ibg);border-color:var(--ic);color:var(--ic)}
+
+body.locked{overflow:hidden}
+#login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a18;display:none;align-items:center;justify-content:center;z-index:9999}
+
+.cli-field{margin-bottom:10px}
+.cli-field label{font-size:12px;color:var(--tx2);display:block;margin-bottom:4px}
+.cli-field select{font-size:14px;padding:9px 11px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);width:100%;-webkit-appearance:none}
+
+.chip{display:inline-block;padding:5px 10px;border-radius:20px;font-size:12px;cursor:pointer;border:.5px solid var(--bd);background:var(--bg2);color:var(--tx2);margin:3px 3px 0 0}
+.chip:hover{background:var(--ibg);border-color:var(--ic);color:var(--ic)}
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
+.moverlay.show{display:flex}
+.mbox{background:var(--bg);border-radius:12px;padding:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+.mbox-title{font-size:15px;font-weight:600;margin-bottom:14px}
+.drow{display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--bg2);border-radius:var(--r);margin-bottom:6px;cursor:pointer}
+.drow.on{background:var(--ibg);border:.5px solid var(--ic)}
+.drow input{width:16px;height:16px;cursor:pointer;flex-shrink:0}
+.ptab{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--bd);background:var(--bg2);color:var(--tx2);display:inline-block;margin:3px 3px 8px 0}
+.ptab.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.hsbadge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600;margin-right:3px}
+.hsn{background:#e6f4e6;color:#1e5c1e}
+.hse{background:#fef3db;color:#7a4f00}
 </style>
 </head>
 <body><div id="ls" style="position:fixed;inset:0;background:#1a1a18;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px"><div style="text-align:center;color:#fff"><div style="font-size:28px;margin-bottom:6px">&#128336;</div><div style="font-size:18px;font-weight:700">Horas por Proyecto</div><div style="font-size:12px;opacity:.5">Fischer Montajes</div></div><div style="background:#fff;border-radius:12px;padding:24px 28px;width:290px"><div style="font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:10px">Clave de acceso</div><input id="li" type="password" placeholder="••••" style="width:100%;height:42px;text-align:center;font-size:20px;letter-spacing:5px;border:1.5px solid #ddd;border-radius:8px;outline:none;color:#1a1a18;background:#f5f4f0" /><div id="le" style="color:#a32d2d;font-size:12px;margin-top:6px;min-height:14px;text-align:center"></div><button id="lb" style="width:100%;height:40px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">Ingresar</button></div></div>
@@ -112,6 +134,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
   <div class="crd">
     <div class="ct"><i class="ti ti-briefcase"></i> Datos del trabajo</div>
     <div class="fg">
+      <div class="cli-field">
+        <label>Cliente</label>
+        <select id="cli-sel" onchange="filtrarPorCliente()">
+          <option value="">-- todos los clientes --</option>
+        </select>
+      </div>
       <div class="fld">
         <label>Proyecto</label>
         <div class="proy-wrap">
@@ -142,6 +170,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
     <div class="fld">
       <label>Observaciones</label>
       <input type="text" id="fo" placeholder="Opcional...">
+      <div style="margin-top:6px"><span class="chip" onclick="addObs('Lluvia')">&#127783; Lluvia</span><span class="chip" onclick="addObs('Mat. faltantes')">&#128230; Mat. faltantes</span><span class="chip" onclick="addObs('Altura')">&#11014; Altura</span><span class="chip" onclick="addObs('Esp. confinado')">&#9888; Esp. confinado</span></div>
       <div class="chips"><div class="chip" onclick="addObs('Lluvia')">&#127783; Lluvia</div><div class="chip" onclick="addObs('Materiales faltantes')">&#128230; Mat. faltantes</div><div class="chip" onclick="addObs('Trabajo en altura')">&#11014; Altura</div><div class="chip" onclick="addObs('Espacio confinado')">&#9888; Esp. confinado</div></div>
     </div>
   </div>
@@ -171,6 +200,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
   </div>
   <div class="br">
     <button class="btn" onclick="lmp()">Limpiar</button>
+    <button class="btn g" onclick="abrirDias()"><i class="ti ti-calendar-plus"></i> Varios dias</button>
     <button class="btn p" onclick="grd()"><i class="ti ti-check"></i> Guardar</button>
   </div>
 </div>
@@ -196,21 +226,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
     <div id="op-content"><div class="emp">Selecciona un operario</div></div>
   </div>
 </div>
+
+<div id="pnl-s" class="pnl">
+  <div id="sem-nav" style="margin-bottom:12px"></div>
+  <div id="sem-body"></div>
+</div>
+<div id="pnl-op" class="pnl">
+  <div class="crd">
+    <div class="ct"><i class="ti ti-user"></i> Ver por operario</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <select id="op-sel" onchange="rOp()" style="flex:1;font-size:14px;padding:9px 11px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);-webkit-appearance:none"><option value="">-- seleccionar --</option></select>
+      <select id="op-per" onchange="rOp()" style="font-size:13px;padding:9px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);-webkit-appearance:none">
+        <option value="mes">Este mes</option><option value="semana">Esta semana</option><option value="todo">Todo</option>
+      </select>
+    </div>
+    <div id="op-body"><div class="emp">Selecciona un operario</div></div>
+  </div>
+</div>
+<div class="moverlay" id="mod-dias">
+  <div class="mbox">
+    <div class="mbox-title">&#128197; Cargar en varios dias</div>
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:12px">Mismo trabajo para cada dia seleccionado.</div>
+    <div id="dias-list"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+      <button class="btn" onclick="document.getElementById('mod-dias').classList.remove('show')">Cancelar</button>
+      <button class="btn p" onclick="guardarDias()"><i class="ti ti-check"></i> Guardar todos</button>
+    </div>
+  </div>
+</div>
 <div id="pnl-h" class="pnl">
   <div class="fb">
-    <select id="flp" onchange="rH()"><option value="">Todos los proyectos</option></select>
+    <input type="text" id="flp-txt" placeholder="Buscar proyecto..." oninput="rH()" style="font-size:13px;padding:7px 10px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);flex:1;min-width:140px">
     <select id="flo" onchange="rH()"><option value="">Todos los operarios</option></select>
   </div>
-  <button class="btn" style="margin-bottom:10px;width:100%;justify-content:center" onclick="eCSV()">
-    <i class="ti ti-download"></i> Exportar CSV
-  </button>
+  <div style="background:var(--bg);border:.5px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <label style="font-size:12px;color:var(--tx2)">Desde:</label>
+    <input type="date" id="exp-d" style="font-size:13px;padding:5px 8px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx)">
+    <label style="font-size:12px;color:var(--tx2)">Hasta:</label>
+    <input type="date" id="exp-h" style="font-size:13px;padding:5px 8px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx)">
+    <button class="btn p" onclick="eCSV()" style="white-space:nowrap"><i class="ti ti-download"></i> Exportar</button>
+    <button class="btn" onclick="eCSVtodo()" style="white-space:nowrap">Todo</button>
+  </div>
   <div id="hl"></div>
 </div>
 
 <div id="pnl-r" class="pnl">
+  <div id="periodo-tabs" style="margin-bottom:12px"></div>
   <div class="sts" id="sts"></div>
   <div class="crd"><div class="ct">Por proyecto</div><div id="rp"></div></div>
-  <div class="crd"><div class="ct">Por operario este mes</div><div id="ro"></div></div>
+  <div class="crd"><div class="ct" id="ro-ct">Por operario</div><div id="ro"></div></div>
 </div>
 
 <div id="pnl-a" class="pnl">
@@ -738,5 +802,5 @@ function rOp(){
 
 fillOpSel();
 </script>
-</div></body>
+</div></div></body>
 </html>
