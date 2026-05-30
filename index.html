@@ -519,6 +519,7 @@ function rH() {
   var tr=trabajos.filter(function(t){
     return (!fP||t.proyecto.toLowerCase().indexOf(fP)>=0) && (!fO||t.operarios.find(function(o){ return o.operario===fO; }));
   });
+  tr.sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
   var el=document.getElementById("hl");
   if(!tr.length){ el.innerHTML="<div class='emp'><i class='ti ti-inbox'></i><br>Sin registros</div>"; return; }
   el.innerHTML="";
