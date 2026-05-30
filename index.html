@@ -674,170 +674,44 @@ function rmI(key,i) {
 }
 
 function eCSV() {
-  var desde = document.getElementById("exp-desde").value;
-  var hasta = document.getElementById("exp-hasta").value;
+  var desde = document.getElementById('exp-desde').value;
+  var hasta = document.getElementById('exp-hasta').value;
   var filtrado = trabajos.filter(function(t){
     if(desde && t.fecha < desde) return false;
     if(hasta && t.fecha > hasta) return false;
     return true;
   });
-  if(!filtrado.length){ alert("No hay registros en ese rango de fechas."); return; }
+  if(!filtrado.length){ alert('No hay registros en ese rango de fechas.'); return; }
   filtrado.sort(function(a,b){ return a.fecha.localeCompare(b.fecha); });
-  var SEP = ";";
-  var rows=["Fecha"+SEP+"Proyecto"+SEP+"Tarea"+SEP+"Encargado"+SEP+"Operario"+SEP+"Tarea Operario"+SEP+"Horas"+SEP+"Horas Extra"+SEP+"Observaciones"];
-  filtrado.forEach(function(t){
-    t.operarios.forEach(function(o){
-      var e = calcE(t.fecha, o.horas);
-      rows.push(t.fecha+SEP+'"'+t.proyecto+'"'+SEP+'"'+t.tarea+'"'+SEP+'"'+t.encargado+'"'+SEP+'"'+o.operario+'"'+SEP+'"'+o.tarea+'"'+SEP+o.horas+SEP+e.e.toFixed(1)+SEP+'"'+(t.obs||'')+'"');
-    });
-  });
-  var nombre = "horas_"+(desde||"inicio")+"_al_"+(hasta||"hoy")+".csv";
-  var bom = "\uFEFF";
-  var a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([bom+rows.join("\n")],{type:"text/csv;charset=utf-8"}));
-  a.download=nombre; a.click();
-  toast("Exportado: "+filtrado.length+" registros");
+  exportarCSV(filtrado, 'horas_'+(desde||'inicio')+'_al_'+(hasta||'hoy')+'.csv');
+  toast('Exportado: '+filtrado.length+' registros');
 }
 
 function eCSVtodo() {
-  var SEP = ";";
-  var rows=["Fecha"+SEP+"Proyecto"+SEP+"Tarea"+SEP+"Encargado"+SEP+"Operario"+SEP+"Tarea Operario"+SEP+"Horas"+SEP+"Horas Extra"+SEP+"Observaciones"];
   var ordenado = trabajos.slice().sort(function(a,b){ return a.fecha.localeCompare(b.fecha); });
-  ordenado.forEach(function(t){
+  exportarCSV(ordenado, 'horas_completo.csv');
+  toast('Exportado: '+ordenado.length+' registros');
+}
+
+function exportarCSV(lista, nombre) {
+  var S = ';';
+  var filas = ['Fecha'+S+'Proyecto'+S+'Tarea'+S+'Encargado'+S+'Operario'+S+'Tarea Operario'+S+'Horas'+S+'Horas Extra'+S+'Observaciones'];
+  lista.forEach(function(t){
     t.operarios.forEach(function(o){
       var e = calcE(t.fecha, o.horas);
-      rows.push(t.fecha+SEP+'"'+t.proyecto+'"'+SEP+'"'+t.tarea+'"'+SEP+'"'+t.encargado+'"'+SEP+'"'+o.operario+'"'+SEP+'"'+o.tarea+'"'+SEP+o.horas+SEP+e.e.toFixed(1)+SEP+'"'+(t.obs||'')+'"');
+      var hs = String(o.horas).replace('.', ',');
+      var ex = e.e.toFixed(1).replace('.', ',');
+      var obs = (t.obs || '').replace(/;/g, ' ');
+      filas.push(t.fecha+S+t.proyecto+S+t.tarea+S+t.encargado+S+o.operario+S+o.tarea+S+hs+S+ex+S+obs);
     });
   });
-  var bom = "\uFEFF";
-  var a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([bom+rows.join("\n")],{type:"text/csv;charset=utf-8"}));
-  a.download="horas_completo.csv"; a.click();
-  toast("Exportado: "+ordenado.length+" registros");
+  var bom = '\uFEFF';
+  var blob = new Blob([bom + filas.join('\n')], {type: 'text/csv;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  a.click();
 }
-
-poblar();
-poblarChecks();
-sF(0);
-aR();
-cargarRemoto();
-
-document.getElementById("lb").addEventListener("click", function() {
-  var v = document.getElementById("li").value;
-  if(v === "2675" || v === "9999") {
-    IS_ADM = (v === "9999");
-    sessionStorage.setItem("auth","ok");
-    sessionStorage.setItem("adm", IS_ADM?"1":"0");
-    document.getElementById("ls").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    if(!IS_ADM) {
-      var ta = document.getElementById("tab-admin");
-      if(ta) ta.style.display = "none";
-    }
-    fillOpSel();
-  } else {
-    document.getElementById("le").textContent = "Clave incorrecta";
-    document.getElementById("li").value = "";
-    setTimeout(function(){ document.getElementById("le").textContent=""; }, 2000);
-  }
-});
-document.getElementById("li").addEventListener("keydown", function(e) {
-  if(e.key === "Enter") document.getElementById("lb").click();
-});
-if(sessionStorage.getItem("auth") === "ok") {
-  IS_ADM = sessionStorage.getItem("adm") === "1";
-  document.getElementById("ls").style.display = "none";
-  document.getElementById("app").style.display = "block";
-  if(!IS_ADM) {
-    var ta = document.getElementById("tab-admin");
-    if(ta) ta.style.display = "none";
-  }
-}
-
-// Favoritos
-var FAVS = JSON.parse(localStorage.getItem("fvs") || "[]");
-function isFav(p){ return FAVS.indexOf(p) >= 0; }
-function toggleFav(p){
-  var i = FAVS.indexOf(p);
-  if(i >= 0) FAVS.splice(i,1); else FAVS.push(p);
-  localStorage.setItem("fvs", JSON.stringify(FAVS));
-}
-
-// Observaciones rapidas
-function addObs(t){
-  var f = document.getElementById("fo");
-  f.value = f.value ? f.value + ", " + t : t;
-}
-
-// Horas extras: L-J 9.5hs, V 8hs, S-D todo extra
-function calcE(fecha, hs){
-  if(!fecha) return {n:hs, e:0};
-  var dow = new Date(fecha + "T12:00:00").getDay();
-  var norm = (dow===0||dow===6) ? 0 : (dow===5 ? 8 : 9.5);
-  return {n: Math.min(hs, norm), e: Math.max(0, hs - norm)};
-}
-
-// Clave admin
-var IS_ADM = sessionStorage.getItem("adm") === "1";
-
-// Semana
-var SEM_IDX = 0;
-function getSems(){
-  var r=[], h=new Date();
-  for(var i=0;i<5;i++){
-    var d=new Date(h); d.setDate(d.getDate()-i*7);
-    var l=new Date(d); l.setDate(d.getDate()-((d.getDay()+6)%7));
-    var v=new Date(l); v.setDate(l.getDate()+4);
-    r.push({
-      desde:l.toISOString().split("T")[0],
-      hasta:v.toISOString().split("T")[0],
-      label:i===0?"Esta semana":i===1?"Sem. pasada":l.getDate()+"/"+(l.getMonth()+1)
-    });
-  }
-  return r;
-}
-
-function rSemana(){
-  var sems=getSems();
-  var tabs=document.getElementById("sem-tabs");
-  tabs.innerHTML="";
-  sems.forEach(function(s,i){
-    var b=document.createElement("div");
-    b.textContent=s.label;
-    b.style="padding:6px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--bd);background:"+(i===SEM_IDX?"var(--tx)":"var(--bg2)")+";color:"+(i===SEM_IDX?"var(--bg)":"var(--tx2)");
-    b.onclick=(function(idx){ return function(){ SEM_IDX=idx; rSemana(); }; })(i);
-    tabs.appendChild(b);
-  });
-  var sem=sems[SEM_IDX];
-  var tr=trabajos.filter(function(t){ return t.fecha>=sem.desde&&t.fecha<=sem.hasta; });
-  var byOp={}, totE=0;
-  tr.forEach(function(t){
-    t.operarios.forEach(function(o){
-      byOp[o.operario]=(byOp[o.operario]||0)+o.horas;
-      var e=calcE(t.fecha,o.horas); totE+=e.e;
-    });
-  });
-  var tot=Object.values(byOp).reduce(function(s,v){ return s+v; },0);
-  var cont=document.getElementById("sem-content");
-  if(!tr.length){ cont.innerHTML="<div class='emp'><i class='ti ti-calendar'></i><br>Sin registros</div>"; return; }
-  var h="<div class='crd'><div class='ct'>Total: <strong>"+tot.toFixed(1)+" hs</strong>";
-  if(totE>0) h+=" &nbsp;<span class='hsbadge hse'>Extra: "+totE.toFixed(1)+"hs</span>";
-  h+="</div>";
-  Object.entries(byOp).sort(function(a,b){ return b[1]-a[1]; }).forEach(function(e){
-    var eOp=0;
-    tr.forEach(function(t){ t.operarios.forEach(function(o){ if(o.operario===e[0]){ eOp+=calcE(t.fecha,o.horas).e; } }); });
-    h+="<div style='display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid var(--bd);font-size:13px'><span>"+e[0]+"</span><span style='font-weight:500'>"+e[1].toFixed(1)+" hs"+(eOp>0?" <span class='hsbadge hse'>+"+eOp.toFixed(1)+"</span>":"")+"</span></div>";
-  });
-  h+="</div><div class='crd'><div class='ct'>Por proyecto</div>";
-  tr.forEach(function(t){
-    var tot2=t.operarios.reduce(function(s,o){ return s+o.horas; },0);
-    var p=t.fecha.split("-");
-    h+="<div style='padding:8px 0;border-bottom:.5px solid var(--bd)'><div style='font-size:13px;font-weight:500'>"+t.proyecto+"</div><div style='font-size:12px;color:var(--tx2)'>"+p[2]+"/"+p[1]+" - "+t.tarea+" - "+tot2.toFixed(1)+" hs</div><div style='font-size:12px;color:var(--tx2)'>"+t.operarios.map(function(o){ return o.operario+" ("+o.horas+"hs)"; }).join(", ")+"</div></div>";
-  });
-  h+="</div>";
-  cont.innerHTML=h;
-}
-
 function fillOpSel(){
   var s=document.getElementById("op-sel"), v=s.value;
   s.innerHTML="<option value=''>-- seleccionar operario --</option>";
