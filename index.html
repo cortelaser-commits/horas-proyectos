@@ -94,9 +94,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 .drow input{width:16px;height:16px;cursor:pointer;flex-shrink:0}
 .ptab{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--bd);background:var(--bg2);color:var(--tx2);display:inline-block;margin:3px 3px 8px 0}
 .ptab.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+
+body.locked{overflow:hidden}
+#login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a18;display:flex;align-items:center;justify-content:center;z-index:9999}
 </style>
 </head>
-<body><div id="app"><div class="hdr">
+<body><div id="login-overlay">
+  <div style="background:#fff;border-radius:12px;padding:28px 32px;width:100%;max-width:300px;text-align:center">
+    <div style="font-size:28px;margin-bottom:8px">&#128336;</div>
+    <div style="font-size:16px;font-weight:700;color:#1a1a18;margin-bottom:4px">Horas por Proyecto</div>
+    <div style="font-size:12px;color:#888;margin-bottom:20px">Fischer Montajes</div>
+    <input id="login-inp" type="password" placeholder="****" autocomplete="off"
+      style="width:100%;height:44px;text-align:center;font-size:22px;letter-spacing:6px;border:1.5px solid #ddd;border-radius:8px;outline:none;color:#1a1a18;background:#f5f4f0;margin-bottom:8px">
+    <div id="login-err" style="color:#b22020;font-size:12px;min-height:18px;margin-bottom:8px"></div>
+    <button id="login-btn" style="width:100%;height:42px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Ingresar</button>
+  </div>
+</div>
+<div id="app" style="display:none"><div class="hdr">
   <div class="hico"><i class="ti ti-clock"></i></div>
   <div>
     <div style="font-size:16px;font-weight:500">Horas por Proyecto</div>
@@ -787,6 +801,48 @@ sF(0);
 aR();
 cargarRemoto();
 
+
+// LOGIN
+var IS_ADM = false;
+document.body.classList.add('locked');
+
+function doLogin(clave) {
+  if(clave === '2675' || clave === '9999') {
+    IS_ADM = (clave === '9999');
+    sessionStorage.setItem('auth', 'ok');
+    sessionStorage.setItem('adm', IS_ADM ? '1' : '0');
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.body.classList.remove('locked');
+    if(!IS_ADM) {
+      var ta = document.getElementById('tab-adm');
+      if(ta) ta.style.display = 'none';
+    }
+  } else {
+    document.getElementById('login-err').textContent = 'Clave incorrecta';
+    document.getElementById('login-inp').value = '';
+    setTimeout(function(){ document.getElementById('login-err').textContent = ''; }, 2000);
+  }
+}
+
+document.getElementById('login-btn').onclick = function() {
+  doLogin(document.getElementById('login-inp').value);
+};
+document.getElementById('login-inp').onkeydown = function(e) {
+  if(e.key === 'Enter') doLogin(document.getElementById('login-inp').value);
+};
+
+// Auto login si ya hay sesion
+if(sessionStorage.getItem('auth') === 'ok') {
+  IS_ADM = sessionStorage.getItem('adm') === '1';
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.body.classList.remove('locked');
+  if(!IS_ADM) {
+    var taAdm = document.getElementById('tab-adm');
+    if(taAdm) taAdm.style.display = 'none';
+  }
+}
 </script>
-</div></div></body>
+</div></div></div></body>
 </html>
