@@ -683,31 +683,35 @@ function eCSV() {
   });
   if(!filtrado.length){ alert("No hay registros en ese rango de fechas."); return; }
   filtrado.sort(function(a,b){ return a.fecha.localeCompare(b.fecha); });
-  var rows=["Fecha,Proyecto,Tarea,Encargado,Operario,Tarea Operario,Horas,Horas Extra,Observaciones"];
+  var SEP = ";";
+  var rows=["Fecha"+SEP+"Proyecto"+SEP+"Tarea"+SEP+"Encargado"+SEP+"Operario"+SEP+"Tarea Operario"+SEP+"Horas"+SEP+"Horas Extra"+SEP+"Observaciones"];
   filtrado.forEach(function(t){
     t.operarios.forEach(function(o){
       var e = calcE(t.fecha, o.horas);
-      rows.push(t.fecha+',"'+t.proyecto+'","'+t.tarea+'","'+t.encargado+'","'+o.operario+'","'+o.tarea+'",'+o.horas+','+e.e.toFixed(1)+',"'+(t.obs||'')+'"');
+      rows.push(t.fecha+SEP+'"'+t.proyecto+'"'+SEP+'"'+t.tarea+'"'+SEP+'"'+t.encargado+'"'+SEP+'"'+o.operario+'"'+SEP+'"'+o.tarea+'"'+SEP+o.horas+SEP+e.e.toFixed(1)+SEP+'"'+(t.obs||'')+'"');
     });
   });
   var nombre = "horas_"+(desde||"inicio")+"_al_"+(hasta||"hoy")+".csv";
+  var bom = "\uFEFF";
   var a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([rows.join("\n")],{type:"text/csv"}));
+  a.href=URL.createObjectURL(new Blob([bom+rows.join("\n")],{type:"text/csv;charset=utf-8"}));
   a.download=nombre; a.click();
   toast("Exportado: "+filtrado.length+" registros");
 }
 
 function eCSVtodo() {
-  var rows=["Fecha,Proyecto,Tarea,Encargado,Operario,Tarea Operario,Horas,Horas Extra,Observaciones"];
+  var SEP = ";";
+  var rows=["Fecha"+SEP+"Proyecto"+SEP+"Tarea"+SEP+"Encargado"+SEP+"Operario"+SEP+"Tarea Operario"+SEP+"Horas"+SEP+"Horas Extra"+SEP+"Observaciones"];
   var ordenado = trabajos.slice().sort(function(a,b){ return a.fecha.localeCompare(b.fecha); });
   ordenado.forEach(function(t){
     t.operarios.forEach(function(o){
       var e = calcE(t.fecha, o.horas);
-      rows.push(t.fecha+',"'+t.proyecto+'","'+t.tarea+'","'+t.encargado+'","'+o.operario+'","'+o.tarea+'",'+o.horas+','+e.e.toFixed(1)+',"'+(t.obs||'')+'"');
+      rows.push(t.fecha+SEP+'"'+t.proyecto+'"'+SEP+'"'+t.tarea+'"'+SEP+'"'+t.encargado+'"'+SEP+'"'+o.operario+'"'+SEP+'"'+o.tarea+'"'+SEP+o.horas+SEP+e.e.toFixed(1)+SEP+'"'+(t.obs||'')+'"');
     });
   });
+  var bom = "\uFEFF";
   var a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([rows.join("\n")],{type:"text/csv"}));
+  a.href=URL.createObjectURL(new Blob([bom+rows.join("\n")],{type:"text/csv;charset=utf-8"}));
   a.download="horas_completo.csv"; a.click();
   toast("Exportado: "+ordenado.length+" registros");
 }
