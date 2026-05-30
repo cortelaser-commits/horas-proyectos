@@ -96,8 +96,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg
 .ptab.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 </style>
 </head>
-<body><div id="ls" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#1a1a18;visibility:hidden;display:flex;align-items:center;justify-content:center;z-index:9999"><div style="background:#fff;border-radius:12px;padding:24px 28px;width:280px;text-align:center"><div style="font-size:32px;margin-bottom:8px">&#128336;</div><div style="font-size:16px;font-weight:700;color:#1a1a18;margin-bottom:4px">Horas por Proyecto</div><div style="font-size:12px;color:#888;margin-bottom:16px">Fischer Montajes</div><input id="li" type="password" placeholder="****" style="width:100%;height:42px;text-align:center;font-size:20px;letter-spacing:5px;border:1.5px solid #ddd;border-radius:8px;outline:none;margin-bottom:8px"><div id="le" style="color:#b22020;font-size:12px;height:16px;margin-bottom:8px"></div><button id="lb" style="width:100%;height:40px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Ingresar</button></div></div><div style="background:#fff;border-radius:12px;padding:24px 28px;width:290px"><div style="font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:10px">Clave de acceso</div><input id="li" type="password" placeholder="••••" style="width:100%;height:42px;text-align:center;font-size:20px;letter-spacing:5px;border:1.5px solid #ddd;border-radius:8px;outline:none;color:#1a1a18;background:#f5f4f0" /><div id="le" style="color:#a32d2d;font-size:12px;margin-top:6px;min-height:14px;text-align:center"></div><button id="lb" style="width:100%;height:40px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">Ingresar</button></div></div>
-<div id="app" style="display:none"><div class="hdr">
+<body><div style="background:#fff;border-radius:12px;padding:24px 28px;width:290px"><div style="font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:10px">Clave de acceso</div><input id="li" type="password" placeholder="••••" style="width:100%;height:42px;text-align:center;font-size:20px;letter-spacing:5px;border:1.5px solid #ddd;border-radius:8px;outline:none;color:#1a1a18;background:#f5f4f0" /><div id="le" style="color:#a32d2d;font-size:12px;margin-top:6px;min-height:14px;text-align:center"></div><button id="lb" style="width:100%;height:40px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">Ingresar</button></div></div>
+<div id="app"><div class="hdr">
   <div class="hico"><i class="ti ti-clock"></i></div>
   <div>
     <div style="font-size:16px;font-weight:500">Horas por Proyecto</div>
@@ -286,36 +286,7 @@ function cargarRemoto() {
 }
 
 // ---- LOGIN ----
-document.getElementById('lb').onclick = function() {
-  var v = document.getElementById('li').value;
-  if(v === '2675' || v === '9999') {
-    IS_ADM = (v === '9999');
-    sessionStorage.setItem('auth','ok');
-    sessionStorage.setItem('adm', IS_ADM ? '1' : '0');
-    document.getElementById('ls').style.visibility = 'hidden';
-    document.getElementById('app').style.display = 'block';
-    if(!IS_ADM) {
-      var ta = document.getElementById('tab-adm');
-      if(ta) ta.style.display = 'none';
-    }
-  } else {
-    document.getElementById('le').textContent = 'Clave incorrecta';
-    document.getElementById('li').value = '';
-    setTimeout(function(){ document.getElementById('le').textContent = ''; }, 2000);
-  }
-};
-document.getElementById('li').onkeydown = function(e) {
-  if(e.key === 'Enter') document.getElementById('lb').onclick();
-};
-if(sessionStorage.getItem('auth') === 'ok') {
-  IS_ADM = sessionStorage.getItem('adm') === '1';
-  document.getElementById('ls').style.visibility = 'hidden';
-  document.getElementById('app').style.display = 'block';
-  if(!IS_ADM) {
-    var tad = document.getElementById('tab-adm');
-    if(tad) tad.style.display = 'none';
-  }
-}
+
 
 // ---- TABS ----
 function goTab(t, el) {
@@ -816,10 +787,7 @@ poblarChecks();
 sF(0);
 aR();
 cargarRemoto();
-// Mostrar login si no hay sesion
-if(sessionStorage.getItem('auth') !== 'ok') {
-  document.getElementById('ls').style.visibility = 'visible';
-}
+
 </script>
 </div></div></body>
 </html>
