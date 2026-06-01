@@ -224,7 +224,7 @@ body.locked{overflow:hidden}
     <input type="text" id="flp-txt" placeholder="Buscar proyecto..." oninput="rH()">
     <select id="flo" onchange="rH()"><option value="">Todos los operarios</option></select>
   </div>
-  <div style="background:var(--bg);border:.5px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+  <div class="admin-only" style="background:var(--bg);border:.5px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <label style="font-size:12px;color:var(--tx2)">Desde:</label>
     <input type="date" id="exp-d" style="font-size:13px;padding:5px 8px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx)">
     <label style="font-size:12px;color:var(--tx2)">Hasta:</label>
@@ -498,8 +498,8 @@ function exportar(lista,nombre){
   lista.forEach(function(t){t.operarios.forEach(function(o){var e=calcE(t.fecha,o.horas),hs=String(o.horas).replace('.',','),ex=e.e.toFixed(1).replace('.',',');filas.push(t.fecha+S+t.proyecto+S+t.tarea+S+t.encargado+S+o.operario+S+hs+S+ex+S+(t.obs||''));});});
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([filas.join('\n')],{type:'text/csv;charset=utf-8'}));a.download=nombre;a.click();
 }
-function eCSV(){var desde=document.getElementById('exp-d').value,hasta=document.getElementById('exp-h').value;var lista=trabajos.filter(function(t){return(!desde||t.fecha>=desde)&&(!hasta||t.fecha<=hasta);}).sort(function(a,b){return a.fecha.localeCompare(b.fecha);});if(!lista.length){alert('No hay registros en ese rango.');return;}exportar(lista,'horas_'+(desde||'inicio')+'_al_'+(hasta||'hoy')+'.csv');toast('Exportado: '+lista.length+' registros');}
-function eCSVtodo(){exportar(trabajos.slice().sort(function(a,b){return a.fecha.localeCompare(b.fecha);}),'horas_completo.csv');}
+function eCSV(){if(!IS_ADM)return;var desde=document.getElementById('exp-d').value,hasta=document.getElementById('exp-h').value;var lista=trabajos.filter(function(t){return(!desde||t.fecha>=desde)&&(!hasta||t.fecha<=hasta);}).sort(function(a,b){return a.fecha.localeCompare(b.fecha);});if(!lista.length){alert('No hay registros en ese rango.');return;}exportar(lista,'horas_'+(desde||'inicio')+'_al_'+(hasta||'hoy')+'.csv');toast('Exportado: '+lista.length+' registros');}
+function eCSVtodo(){if(!IS_ADM)return;exportar(trabajos.slice().sort(function(a,b){return a.fecha.localeCompare(b.fecha);}),'horas_completo.csv');}
 var PERIODOS=[{k:'mes',l:'Este mes'},{k:'semana',l:'Esta semana'},{k:'3m',l:'3 meses'},{k:'anio',l:'Este anio'},{k:'todo',l:'Todo'}];
 function initPeriodo(){var cont=document.getElementById('periodo-tabs');if(cont.innerHTML)return;PERIODOS.forEach(function(p){var b=document.createElement('span');b.className='ptab'+(p.k===PERIODO?' on':'');b.textContent=p.l;b.onclick=function(){PERIODO=p.k;document.querySelectorAll('.ptab').forEach(function(x){x.classList.remove('on');});b.classList.add('on');rR();};cont.appendChild(b);});}
 function getFiltro(){var hoy=new Date(),yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,'0'),dd=String(hoy.getDate()).padStart(2,'0'),hoyStr=yyyy+'-'+mm+'-'+dd;if(PERIODO==='mes')return{d:yyyy+'-'+mm+'-01',h:hoyStr};if(PERIODO==='semana'){var l=new Date(hoy);l.setDate(hoy.getDate()-((hoy.getDay()+6)%7));return{d:l.getFullYear()+'-'+String(l.getMonth()+1).padStart(2,'0')+'-'+String(l.getDate()).padStart(2,'0'),h:hoyStr};}if(PERIODO==='3m'){var d3=new Date(hoy);d3.setMonth(d3.getMonth()-3);return{d:d3.getFullYear()+'-'+String(d3.getMonth()+1).padStart(2,'0')+'-'+String(d3.getDate()).padStart(2,'0'),h:hoyStr};}if(PERIODO==='anio')return{d:yyyy+'-01-01',h:hoyStr};return{d:'2000-01-01',h:hoyStr};}
