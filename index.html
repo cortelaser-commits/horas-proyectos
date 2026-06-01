@@ -119,10 +119,10 @@ body.locked{overflow:hidden}
 <div class="tabs">
   <button class="tab on" onclick="goTab('c',this)"><i class="ti ti-clock"></i> Cargar</button>
   <button class="tab" onclick="goTab('h',this)"><i class="ti ti-list"></i> Historial</button>
-  <button class="tab" onclick="goTab('r',this)"><i class="ti ti-chart-bar"></i> Resumen</button>
-  <button class="tab" onclick="goTab('s',this)"><i class="ti ti-calendar-week"></i> Semana</button>
-  <button class="tab" onclick="goTab('op',this)"><i class="ti ti-user"></i> Operario</button>
-  <button class="tab" id="tab-adm" onclick="goTab('a',this)"><i class="ti ti-settings"></i> Admin</button>
+  <button class="tab admin-only" onclick="goTab('r',this)"><i class="ti ti-chart-bar"></i> Resumen</button>
+  <button class="tab admin-only" onclick="goTab('s',this)"><i class="ti ti-calendar-week"></i> Semana</button>
+  <button class="tab admin-only" onclick="goTab('op',this)"><i class="ti ti-user"></i> Operario</button>
+  <button class="tab admin-only" id="tab-adm" onclick="goTab('a',this)"><i class="ti ti-settings"></i> Admin</button>
 </div>
 <div id="tst" class="tst"><i class="ti ti-check"></i><span id="tm"></span></div>
 <div id="pnl-c" class="pnl on">
@@ -269,7 +269,7 @@ function doLogin(c){
     sessionStorage.setItem('auth','ok');sessionStorage.setItem('adm',IS_ADM?'1':'0');
     document.getElementById('login-overlay').style.display='none';
     document.getElementById('app').style.display='block';
-    if(!IS_ADM){var t=document.getElementById('tab-adm');if(t)t.style.display='none';}
+    aplicarPermisos();
   } else {
     document.getElementById('login-err').textContent='Clave incorrecta';
     document.getElementById('login-inp').value='';
@@ -280,12 +280,21 @@ if(sessionStorage.getItem('auth')==='ok'){
   IS_ADM=sessionStorage.getItem('adm')==='1';
   document.getElementById('login-overlay').style.display='none';
   document.getElementById('app').style.display='block';
-  if(!IS_ADM){var _ta=document.getElementById('tab-adm');if(_ta)_ta.style.display='none';}
+  aplicarPermisos();
 } else {
   document.getElementById('login-overlay').style.display='flex';
 }
 
+// Muestra/oculta las pestañas que son solo para admin (Resumen, Semana, Operario, Admin)
+function aplicarPermisos(){
+  document.querySelectorAll('.admin-only').forEach(function(b){
+    b.style.display = IS_ADM ? '' : 'none';
+  });
+}
+
 function goTab(t,el){
+  // Pestañas reservadas a admin
+  if(!IS_ADM && (t==='r'||t==='s'||t==='op'||t==='a')) return;
   document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('on');});
   document.querySelectorAll('.pnl').forEach(function(p){p.classList.remove('on');});
   el.classList.add('on');document.getElementById('pnl-'+t).classList.add('on');
