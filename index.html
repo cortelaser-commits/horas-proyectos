@@ -243,7 +243,7 @@ body.locked{overflow:hidden}
 <div id="pnl-a" class="pnl">
   <div class="ag">
     <div class="crd"><div class="ct"><i class="ti ti-users"></i> Operarios</div><div id="aop" class="alist"></div><div class="ar"><input id="nop" placeholder="Nombre..."><button class="btn p" onclick="aI('op','nop')"><i class="ti ti-plus"></i></button></div></div>
-    <div class="crd"><div class="ct"><i class="ti ti-building"></i> Proyectos</div><div id="apr" class="alist"></div><div class="ar"><input id="npr" placeholder="N / nombre..."><button class="btn p" onclick="aI('pr','npr')"><i class="ti ti-plus"></i></button></div></div>
+    <div class="crd"><div class="ct"><i class="ti ti-building"></i> Proyectos</div><div id="apr" class="alist"></div><div class="ar" style="flex-wrap:wrap"><input id="npr" placeholder="N / nombre..." style="flex:2;min-width:130px"><select id="ncli" style="flex:1;min-width:120px;font-size:13px;padding:8px 10px;border:.5px solid var(--bd);border-radius:var(--r);background:var(--bg);color:var(--tx);-webkit-appearance:none"><option value="">-- cliente --</option></select><button class="btn p" onclick="aI('pr','npr')"><i class="ti ti-plus"></i></button></div></div>
   </div>
   <div class="crd"><div class="ct"><i class="ti ti-tool"></i> Tareas</div><div id="ata" class="alist"></div><div class="ar"><input id="nta" placeholder="Nombre..."><button class="btn p" onclick="aI('ta','nta')"><i class="ti ti-plus"></i></button></div></div>
 </div>
@@ -257,8 +257,8 @@ var PROY_CLI={"4476":"FEMSA","4484":"FEMSA","4526":"FEMSA","4537":"FEMSA","4546"
 var FAVS=JSON.parse(localStorage.getItem('fvs')||'[]');
 var trabajos=[],rid=0,modo='r',SEMIDX=0,PERIODO='mes',IS_ADM=false;
 
-function sync(){fetch('/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operarios:OP,proyectos:PR,tareas:TA,trabajos:trabajos})}).catch(function(){});}
-function cargarRemoto(){fetch('/data').then(function(r){return r.json();}).then(function(d){if(d&&d.trabajos&&d.trabajos.length>0){trabajos=d.trabajos;}}).catch(function(){});}
+function sync(){fetch('/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operarios:OP,proyectos:PR,tareas:TA,trabajos:trabajos,cliMap:CLI_MAP,proyeCli:PROY_CLI})}).catch(function(){});}
+function cargarRemoto(){fetch('/data').then(function(r){return r.json();}).then(function(d){if(!d)return;if(d.trabajos&&d.trabajos.length>0)trabajos=d.trabajos;if(d.operarios&&d.operarios.length)OP=d.operarios;if(d.proyectos&&d.proyectos.length)PR=d.proyectos;if(d.tareas&&d.tareas.length)TA=d.tareas;if(d.cliMap)CLI_MAP=d.cliMap;if(d.proyeCli)PROY_CLI=d.proyeCli;poblar();poblarChecks();initClientes();}).catch(function(){});}
 
 // LOGIN
 document.getElementById('login-btn').onclick=function(){doLogin(document.getElementById('login-inp').value);};
@@ -323,7 +323,11 @@ function poblarChecks(){
 }
 function initClientes(){
   var sel=document.getElementById('cli-sel');
-  Object.keys(CLI_MAP).sort().forEach(function(c){sel.innerHTML+="<option value='"+c+"'>"+c+"</option>";});
+  var ncs=document.getElementById('ncli');
+  Object.keys(CLI_MAP).sort().forEach(function(c){
+    sel.innerHTML+="<option value='"+c+"'>"+c+"</option>";
+    if(ncs)ncs.innerHTML+="<option value='"+c+"'>"+c+"</option>";
+  });
 }
 function filtrarPorCliente(){
   var cli=document.getElementById('cli-sel').value;
@@ -509,7 +513,7 @@ function rSem(){var sems=getSems(),nav=document.getElementById('sem-nav');nav.in
 function fillOpSel(){var s=document.getElementById('op-sel'),v=s.value;s.innerHTML="<option value=''>-- seleccionar --</option>";OP.forEach(function(x){s.innerHTML+="<option value='"+x+"'>"+x+"</option>";});s.value=v;}
 function rOp(){var sel=document.getElementById('op-sel').value,per=document.getElementById('op-per').value,cont=document.getElementById('op-body');if(!sel){cont.innerHTML="<div class='emp'>Selecciona un operario</div>";return;}var hoy=new Date(),hoyStr=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0'),mes=hoyStr.slice(0,7);var l=new Date(hoy);l.setDate(l.getDate()-((l.getDay()+6)%7));var lunStr=l.getFullYear()+'-'+String(l.getMonth()+1).padStart(2,'0')+'-'+String(l.getDate()).padStart(2,'0');var tr=trabajos.filter(function(t){if(!t.operarios.find(function(o){return o.operario===sel;}))return false;if(per==='mes')return t.fecha.startsWith(mes);if(per==='semana')return t.fecha>=lunStr;return true;});if(!tr.length){cont.innerHTML="<div class='emp'>Sin registros</div>";return;}var totH=0,totE=0;tr.forEach(function(t){t.operarios.forEach(function(o){if(o.operario===sel){totH+=o.horas;totE+=calcE(t.fecha,o.horas).e;}});});var h="<div style='display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap'><div class='st' style='flex:1'><div class='sl'>Total</div><div class='sv'>"+totH.toFixed(1)+"</div></div><div class='st' style='flex:1'><div class='sl'>Extras</div><div class='sv' style='color:#7a4f00'>"+totE.toFixed(1)+"</div></div><div class='st' style='flex:1'><div class='sl'>Trabajos</div><div class='sv'>"+tr.length+"</div></div></div>";tr.sort(function(a,b){return b.fecha.localeCompare(a.fecha);}).forEach(function(t){var op=t.operarios.find(function(o){return o.operario===sel;});if(!op)return;var e=calcE(t.fecha,op.horas),p=t.fecha.split('-');h+="<div class='hcrd'><div style='display:flex;justify-content:space-between'><div><div style='font-size:13px;font-weight:500'>"+t.proyecto+"</div><div style='font-size:12px;color:var(--tx2)'>"+p[2]+"/"+p[1]+"/"+p[0]+" - "+op.tarea+"</div></div><div style='text-align:right'><div style='font-size:18px;font-weight:500'>"+op.horas+" hs</div>"+(e.e>0?"<span class='hsbadge hse'>+"+e.e.toFixed(1)+" extra</span>":"")+"</div></div></div>";});cont.innerHTML=h;}
 function rA(){function rl(id,arr,key){var el=document.getElementById(id);el.innerHTML='';if(!arr.length){el.innerHTML="<div style='color:var(--tx2);font-size:13px'>Sin elementos</div>";return;}arr.forEach(function(x,i){var div=document.createElement('div');div.className='ai';var sp=document.createElement('span');sp.textContent=x;var btn=document.createElement('button');btn.className='btn d';btn.style='padding:3px 8px;font-size:11px';btn.innerHTML="<i class='ti ti-x'></i>";btn.onclick=(function(k,idx){return function(){rmI(k,idx);};})(key,i);div.appendChild(sp);div.appendChild(btn);el.appendChild(div);});}rl('aop',OP,'op');rl('apr',PR,'pr');rl('ata',TA,'ta');}
-function aI(key,iid){var v=document.getElementById(iid).value.trim();if(!v)return;if(key==='op')OP.push(v);else if(key==='pr')PR.push(v);else TA.push(v);poblar();poblarChecks();rA();document.getElementById(iid).value='';}
+function aI(key,iid){var v=document.getElementById(iid).value.trim();if(!v)return;if(key==='op')OP.push(v);else if(key==='pr'){PR.push(v);var cli=document.getElementById('ncli').value;if(cli){var nro=v.split(' ')[0];if(!CLI_MAP[cli])CLI_MAP[cli]=[];if(CLI_MAP[cli].indexOf(nro)<0)CLI_MAP[cli].push(nro);PROY_CLI[nro]=cli;}document.getElementById('ncli').value='';}else TA.push(v);poblar();poblarChecks();rA();sync();document.getElementById(iid).value='';}
 function rmI(key,i){if(key==='op')OP.splice(i,1);else if(key==='pr')PR.splice(i,1);else TA.splice(i,1);poblar();poblarChecks();rA();}
 poblar();poblarChecks();sF(0);aR();cargarRemoto();initClientes();
 </script>
