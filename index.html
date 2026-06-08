@@ -521,10 +521,10 @@ function rH(){
   var totE=tr.reduce(function(s,t){return s+t.operarios.reduce(function(ss,o){return ss+calcE(t.fecha,o.horas).e;},0);},0);
   el.innerHTML='';
   var sum=document.createElement('div');
-  sum.style='background:var(--sbg);border:.5px solid rgba(46,125,50,.3);border-radius:var(--r);padding:10px 14px;margin-bottom:10px;display:flex;gap:16px;align-items:center;font-size:13px;flex-wrap:wrap';
-  sum.innerHTML="<span style='color:var(--tx2)'><strong style='color:var(--tx)'>"+tr.length+"</strong> registros</span>"
-    +"<span style='color:var(--tx2)'>Total: <strong style='color:var(--sc);font-size:17px'>"+totH.toFixed(1)+"</strong> hs</span>"
-    +(totE>0?"<span style='color:var(--tx2)'>Extras: <strong style='color:#7a4f00'>"+totE.toFixed(1)+"</strong> hs</span>":"");
+  sum.style='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px';
+  sum.innerHTML="<div class='st'><div class='sl'>"+tr.length+" registros · Total</div><div class='sv' style='color:var(--sc)'>"+totH.toFixed(1)+" <span style='font-size:14px;font-weight:400'>hs</span></div></div>"
+    +"<div class='st'><div class='sl'>Horas normales</div><div class='sv' style='color:var(--sc)'>"+( totH-totE).toFixed(1)+" <span style='font-size:14px;font-weight:400'>hs</span></div></div>"
+    +"<div class='st'><div class='sl'>Horas extras</div><div class='sv' style='color:#7a4f00'>"+totE.toFixed(1)+" <span style='font-size:14px;font-weight:400'>hs</span></div></div>";
   el.appendChild(sum);
   tr.forEach(function(t){
     var tot=t.operarios.reduce(function(s,o){return s+o.horas;},0),p=t.fecha.split('-');
