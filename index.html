@@ -4,12 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Horas - Fischer Montajes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#fff;--bg2:#f5f5f4;--bg3:#f0efed;--tx:#1a1a18;--tx2:#6b6b68;--bd:#d4d2ca;--sc:#3b6d11;--sbg:#eaf3de;--dc:#a32d2d;--ic:#185fa5;--ibg:#e6f1fb;--r:8px;--rl:12px}
+:root{--bg:#fff;--bg2:#f5f5f4;--bg3:#f0efed;--tx:#1a1a18;--tx2:#6b6b68;--bd:#d4d2ca;--sc:#2e7d32;--sbg:#e8f5e9;--dc:#a32d2d;--ic:#185fa5;--ibg:#e6f1fb;--r:8px;--rl:12px}
 @media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;--tx:#f0ede8;--tx2:#9b9890;--bd:#3a3a37}}
-body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg3);color:var(--tx)}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg3);color:var(--tx)}
 body.locked{overflow:hidden}
 #login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a18;display:none;align-items:center;justify-content:center;z-index:9999}
 .hdr{background:var(--bg);border-bottom:.5px solid var(--bd);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
@@ -99,18 +101,27 @@ body.locked{overflow:hidden}
 .btn{transition:filter .12s ease,transform .1s ease}
 .btn:hover{filter:brightness(.92)}
 .btn:active{transform:scale(.97)}
-.btn.p:hover{filter:brightness(1.18)}
+.btn.p{background:var(--sc);border-color:var(--sc)}
+.btn.p:hover{filter:brightness(1.12)}
+.btn.g{border-color:var(--sc);color:var(--sc)}
 .tab{transition:color .12s,border-color .12s}
+.tab.on{color:var(--sc);border-bottom-color:var(--sc)}
 .dbtn{transition:background .15s,color .15s,border-color .15s}
+.dbtn.on{background:var(--sc);border-color:var(--sc);color:#fff}
+.mtab.on{background:var(--sc)}
+.ptab.on{background:var(--sc);border-color:var(--sc)}
 .ochk{transition:background .12s,border-color .12s}
+.ochk.sel{background:var(--sbg);border-color:var(--sc);color:var(--sc)}
 .chip{transition:background .12s,border-color .12s,color .12s}
+.chip:hover{background:var(--sbg);border-color:var(--sc);color:var(--sc)}
 .crd{box-shadow:0 1px 4px rgba(0,0,0,.07)}
-.hcrd{border-left:3px solid var(--ic);transition:box-shadow .15s}
+.ct{font-size:15px;font-weight:600}
+.hcrd{border-left:3px solid var(--sc);transition:box-shadow .15s}
 .hcrd:hover{box-shadow:0 2px 10px rgba(0,0,0,.09)}
-.fld input:focus,.fld select:focus,.ar input:focus,.shs input:focus,.fb input:focus,.fb select:focus{outline:none;border-color:var(--ic) !important;box-shadow:0 0 0 3px rgba(24,95,165,.13)}
-.tbar{padding:12px 14px}
-.ths{font-size:20px;font-weight:600}
-.br .btn.p{padding:11px 30px;font-size:14px}
+.fld input:focus,.fld select:focus,.ar input:focus,.shs input:focus,.fb input:focus,.fb select:focus{outline:none;border-color:var(--sc) !important;box-shadow:0 0 0 3px rgba(46,125,50,.13)}
+.tbar{padding:12px 14px;background:var(--sbg);border:.5px solid rgba(46,125,50,.25)}
+.ths{font-size:20px;font-weight:700;color:var(--sc)}
+.br .btn.p{padding:11px 30px;font-size:14px;font-weight:600}
 </style>
 </head>
 <body>
