@@ -439,10 +439,9 @@ function abrirDias(){
     dias.push({fecha:yyyy+'-'+mm+'-'+dd,lbl:i===0?'Hoy':i===1?'Ayer':i===2?'Antes de ayer':nombres[dt.getDay()]+' '+dd+'/'+mm});
   }
   var lista=document.getElementById('dias-list');lista.innerHTML='';
-  var fa=document.getElementById('ff').value;
   dias.forEach(function(dia){
-    var row=document.createElement('div');row.className='drow'+(dia.fecha===fa?' on':'');
-    var chk=document.createElement('input');chk.type='checkbox';chk.id='dc-'+dia.fecha;chk.checked=(dia.fecha===fa);
+    var row=document.createElement('div');row.className='drow';
+    var chk=document.createElement('input');chk.type='checkbox';chk.id='dc-'+dia.fecha;chk.checked=false;
     chk.onchange=function(){row.classList.toggle('on',chk.checked);};
     var lbl=document.createElement('label');lbl.htmlFor='dc-'+dia.fecha;lbl.style='flex:1;cursor:pointer;display:flex;justify-content:space-between';
     lbl.innerHTML='<span style="font-size:13px;font-weight:500">'+dia.lbl+'</span><span style="font-size:12px;color:var(--tx2)">'+dia.fecha.split('-').reverse().join('/')+'</span>';
