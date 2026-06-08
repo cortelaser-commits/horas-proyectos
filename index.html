@@ -517,7 +517,15 @@ function rH(){
   var tr=trabajos.filter(function(t){return(!fP||t.proyecto.toLowerCase().indexOf(fP)>=0)&&(!fO||t.operarios.find(function(o){return o.operario===fO;}));}).sort(function(a,b){return b.fecha.localeCompare(a.fecha);});
   var el=document.getElementById('hl');
   if(!tr.length){el.innerHTML="<div class='emp'><i class='ti ti-inbox'></i><br>Sin registros</div>";return;}
+  var totH=tr.reduce(function(s,t){return s+t.operarios.reduce(function(ss,o){return ss+o.horas;},0);},0);
+  var totE=tr.reduce(function(s,t){return s+t.operarios.reduce(function(ss,o){return ss+calcE(t.fecha,o.horas).e;},0);},0);
   el.innerHTML='';
+  var sum=document.createElement('div');
+  sum.style='background:var(--sbg);border:.5px solid rgba(46,125,50,.3);border-radius:var(--r);padding:10px 14px;margin-bottom:10px;display:flex;gap:16px;align-items:center;font-size:13px;flex-wrap:wrap';
+  sum.innerHTML="<span style='color:var(--tx2)'><strong style='color:var(--tx)'>"+tr.length+"</strong> registros</span>"
+    +"<span style='color:var(--tx2)'>Total: <strong style='color:var(--sc);font-size:17px'>"+totH.toFixed(1)+"</strong> hs</span>"
+    +(totE>0?"<span style='color:var(--tx2)'>Extras: <strong style='color:#7a4f00'>"+totE.toFixed(1)+"</strong> hs</span>":"");
+  el.appendChild(sum);
   tr.forEach(function(t){
     var tot=t.operarios.reduce(function(s,o){return s+o.horas;},0),p=t.fecha.split('-');
     var totN=0,totE=0;t.operarios.forEach(function(o){var e=calcE(t.fecha,o.horas);totN+=e.n;totE+=e.e;});
