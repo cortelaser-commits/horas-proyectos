@@ -248,6 +248,22 @@ body.locked{overflow:hidden}
     </div>
   </div>
 </div>
+<div class="moverlay" id="mod-edit">
+  <div class="mbox">
+    <div class="mbox-title"><i class="ti ti-pencil"></i> Editar registro</div>
+    <div id="edit-info" style="font-size:13px;color:var(--tx2);margin-bottom:14px;padding:8px 10px;background:var(--bg2);border-radius:var(--r)"></div>
+    <table class="otb" style="margin-bottom:8px">
+      <thead><tr><th>Operario</th><th>Tarea</th><th style="width:80px">Horas</th><th style="width:36px"></th></tr></thead>
+      <tbody id="edit-ot"></tbody>
+    </table>
+    <button class="btn g" onclick="aREd()" style="margin-bottom:12px"><i class="ti ti-plus"></i> Agregar operario</button>
+    <div class="tbar" style="margin-top:0"><span style="color:var(--tx2)">Total</span><span class="ths" id="edit-tt">0 hs</span></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+      <button class="btn" onclick="cerrarEdit()">Cancelar</button>
+      <button class="btn p" onclick="guardarEdit()"><i class="ti ti-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
 <div id="pnl-h" class="pnl">
   <div class="fb">
     <input type="text" id="flp-txt" placeholder="Buscar proyecto..." oninput="rH()">
@@ -531,8 +547,9 @@ function rH(){
     var totN=0,totE=0;t.operarios.forEach(function(o){var e=calcE(t.fecha,o.horas);totN+=e.n;totE+=e.e;});
     var div=document.createElement('div');div.className='hcrd';
     div.innerHTML="<div style='display:flex;justify-content:space-between;margin-bottom:8px'><div><div style='font-size:14px;font-weight:500'>"+t.proyecto+"</div><div style='font-size:12px;color:var(--tx2)'><span class='bdg'>"+t.tarea+"</span> "+p[2]+"/"+p[1]+"/"+p[0]+" por "+t.encargado+"</div>"+(t.obs?"<div style='font-size:12px;color:var(--tx2);font-style:italic'>"+t.obs+"</div>":"")+(totE>0?"<div style='margin-top:4px'><span class='hsbadge hsn'>Normal: "+totN.toFixed(1)+"hs</span><span class='hsbadge hse'>Extra: "+totE.toFixed(1)+"hs</span></div>":"")+"</div><div style='text-align:right'><div style='font-size:20px;font-weight:500'>"+tot.toFixed(1)+"</div><div style='font-size:11px;color:var(--tx2)'>hs</div></div></div><div class='ol'>"+t.operarios.map(function(o){return "<div class='or'><span>"+o.operario+" <span style='color:var(--tx2)'>- "+o.tarea+"</span></span><span style='font-weight:500'>"+o.horas+" hs</span></div>";}).join('')+"</div>";
+    var btnEd=document.createElement('button');btnEd.className='btn g';btnEd.style='font-size:11px;padding:3px 8px;margin-top:8px;margin-right:6px';btnEd.innerHTML="<i class='ti ti-pencil'></i> Editar";btnEd.onclick=(function(tid){return function(){abrirEditar(tid);};})(t.id);
     var btn=document.createElement('button');btn.className='btn d';btn.style='font-size:11px;padding:3px 8px;margin-top:8px';btn.innerHTML="<i class='ti ti-trash'></i> Eliminar";btn.onclick=(function(tid){return function(){del(tid);};})(t.id);
-    div.appendChild(btn);el.appendChild(div);
+    div.appendChild(btnEd);div.appendChild(btn);el.appendChild(div);
   });
 }
 function del(id){if(!confirm('Eliminar?'))return;trabajos=trabajos.filter(function(t){return t.id!==id;});sync();rH();}
@@ -555,6 +572,12 @@ function rA(){function rl(id,arr,key){var el=document.getElementById(id);el.inne
 function aI(key,iid){var v=document.getElementById(iid).value.trim();if(!v)return;if(key==='op')OP.push(v);else if(key==='pr'){PR.push(v);var cli=document.getElementById('ncli').value;if(cli){var nro=v.split(' ')[0];if(!CLI_MAP[cli])CLI_MAP[cli]=[];if(CLI_MAP[cli].indexOf(nro)<0)CLI_MAP[cli].push(nro);PROY_CLI[nro]=cli;}document.getElementById('ncli').value='';}else TA.push(v);poblar();poblarChecks();rA();sync();document.getElementById(iid).value='';}
 function chkF(){var v=document.getElementById('ff').value;var mk=function(d){var dt=new Date();dt.setDate(dt.getDate()+d);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');};document.getElementById('bh').classList.toggle('on',v===mk(0));document.getElementById('ba').classList.toggle('on',v===mk(-1));document.getElementById('bb').classList.toggle('on',v===mk(-2));}
 function rmI(key,i){if(key==='op')OP.splice(i,1);else if(key==='pr')PR.splice(i,1);else TA.splice(i,1);poblar();poblarChecks();rA();sync();}
+var editId=null,editRid=0;
+function abrirEditar(id){var t=trabajos.find(function(x){return x.id===id;});if(!t)return;editId=id;editRid=0;var p=t.fecha.split('-');document.getElementById('edit-info').innerHTML="<strong>"+t.proyecto+"</strong> &nbsp;·&nbsp; "+p[2]+"/"+p[1]+"/"+p[0]+" &nbsp;·&nbsp; "+t.tarea;document.getElementById('edit-ot').innerHTML='';t.operarios.forEach(function(o){aREd(o.operario,o.tarea,o.horas);});cTEd();document.getElementById('mod-edit').classList.add('show');}
+function aREd(op,ta,hs){var id='ed'+editRid++,tr=document.createElement('tr');tr.id=id;var sOp=document.createElement('select');sOp.className='os';sOp.innerHTML="<option value=''>--</option>"+mkO(OP,op);var sTa=document.createElement('select');sTa.className='ts';sTa.innerHTML="<option value=''>--</option>"+mkO(TA,ta);var inp=document.createElement('input');inp.className='hi';inp.type='number';inp.min='0.5';inp.max='24';inp.step='0.5';inp.value=hs||'';inp.placeholder='0';inp.style.width='70px';inp.oninput=cTEd;var btn=document.createElement('button');btn.className='btn d';btn.style.padding='4px 8px';btn.innerHTML="<i class='ti ti-x'></i>";btn.onclick=function(){tr.remove();cTEd();};var td1=document.createElement('td');td1.appendChild(sOp);var td2=document.createElement('td');td2.appendChild(sTa);var td3=document.createElement('td');td3.appendChild(inp);var td4=document.createElement('td');td4.appendChild(btn);tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);tr.appendChild(td4);document.getElementById('edit-ot').appendChild(tr);cTEd();}
+function cTEd(){var t=0;document.querySelectorAll('#edit-ot .hi').forEach(function(i){var v=parseFloat(i.value);if(!isNaN(v))t+=v;});document.getElementById('edit-tt').textContent=t.toFixed(1)+' hs';}
+function cerrarEdit(){document.getElementById('mod-edit').classList.remove('show');editId=null;}
+function guardarEdit(){var ops=[],ok=true;document.querySelectorAll('#edit-ot tr').forEach(function(tr){var op=tr.querySelector('.os').value,ta=tr.querySelector('.ts').value,h=parseFloat(tr.querySelector('.hi').value);if(!op||isNaN(h)||h<=0){ok=false;return;}ops.push({operario:op,tarea:ta,horas:h});});if(!ok||!ops.length){alert('Revisá los operarios y horas.');return;}var idx=trabajos.findIndex(function(x){return x.id===editId;});if(idx>=0)trabajos[idx].operarios=ops;sync();cerrarEdit();rH();toast('Registro actualizado');}
 poblar();poblarChecks();sF(0);aR();cargarRemoto();initClientes();
 </script>
 </div>
